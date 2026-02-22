@@ -77,7 +77,6 @@
             <div class="flex space-x-3" id="admin-tabs">
                 <button onclick="switchAppView('dashboard')" id="tab-dashboard" class="admin-tab px-4 py-2 rounded-full text-sm font-bold transition-all bg-app-highlight/20 text-app-highlight border border-app-highlight flex items-center gap-1"><i data-lucide="trophy" class="w-4 h-4"></i> Jogos da Copa</button>
                 <button onclick="switchAppView('manage')" id="tab-manage" class="admin-tab px-4 py-2 rounded-full text-sm font-medium transition-all bg-[#2A2A2A] text-gray-400 border border-transparent flex items-center gap-1"><i data-lucide="settings" class="w-4 h-4"></i> Gerenciar</button>
-                <button onclick="insertAllGames()" class="admin-tab px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white flex items-center gap-1"><i data-lucide="zap" class="w-4 h-4"></i> IMPORTAR 28 JOGOS</button>
             </div>
         </nav>
 
@@ -389,84 +388,6 @@
 
         lucide.createIcons();
         switchAppView('dashboard');
-
-
-        // ====== INÍCIO DO SCRIPT TEMPORÁRIO DE IMPORTAÇÃO ======
-        window.insertAllGames = async () => {
-            if(!confirm("Tem certeza que deseja adicionar os 28 jogos? Clique apenas UMA VEZ e aguarde o aviso de sucesso para não duplicar!")) return;
-            
-            const gamesToInsert = [
-                // 1ª RODADA
-                { round: 'Rodada 1', date: '14/03 16:00', teamA: 'Costa do Marfim', teamB: 'Cabo Verde' },
-                { round: 'Rodada 1', date: '14/03 16:50', teamA: 'Egito', teamB: 'África do Sul' },
-                { round: 'Rodada 1', date: '14/03 17:40', teamA: 'Qatar', teamB: 'Haiti' },
-                { round: 'Rodada 1', date: '14/03 18:30', teamA: 'Irã', teamB: 'Coreia do Sul' },
-
-                // 2ª RODADA
-                { round: 'Rodada 2', date: '19/03 19:15', teamA: 'Costa do Marfim', teamB: 'África do Sul' },
-                { round: 'Rodada 2', date: '19/03 20:05', teamA: 'Haiti', teamB: 'Cabo Verde' },
-                { round: 'Rodada 2', date: '21/03 17:15', teamA: 'Egito', teamB: 'Coreia do Sul' },
-                { round: 'Rodada 2', date: '21/03 18:05', teamA: 'Qatar', teamB: 'Irã' },
-
-                // 3ª RODADA
-                { round: 'Rodada 3', date: '26/03 19:15', teamA: 'Cabo Verde', teamB: 'Irã' },
-                { round: 'Rodada 3', date: '26/03 20:05', teamA: 'Egito', teamB: 'Qatar' },
-                { round: 'Rodada 3', date: '28/03 17:15', teamA: 'Costa do Marfim', teamB: 'Haiti' },
-                { round: 'Rodada 3', date: '28/03 18:05', teamA: 'África do Sul', teamB: 'Coreia do Sul' },
-
-                // 4ª RODADA
-                { round: 'Rodada 4', date: '02/04 19:15', teamA: 'Costa do Marfim', teamB: 'Coreia do Sul' },
-                { round: 'Rodada 4', date: '02/04 20:05', teamA: 'Haiti', teamB: 'Irã' },
-                { round: 'Rodada 4', date: '04/04 17:15', teamA: 'África do Sul', teamB: 'Qatar' },
-                { round: 'Rodada 4', date: '04/04 18:05', teamA: 'Cabo Verde', teamB: 'Egito' },
-
-                // 5ª RODADA
-                { round: 'Rodada 5', date: '09/04 19:15', teamA: 'Cabo Verde', teamB: 'África do Sul' },
-                { round: 'Rodada 5', date: '09/04 20:05', teamA: 'Coreia do Sul', teamB: 'Qatar' },
-                { round: 'Rodada 5', date: '11/04 17:15', teamA: 'Costa do Marfim', teamB: 'Irã' },
-                { round: 'Rodada 5', date: '11/04 18:05', teamA: 'Haiti', teamB: 'Egito' },
-
-                // 6ª RODADA
-                { round: 'Rodada 6', date: '16/04 19:15', teamA: 'Costa do Marfim', teamB: 'Qatar' },
-                { round: 'Rodada 6', date: '16/04 20:05', teamA: 'Irã', teamB: 'Egito' },
-                { round: 'Rodada 6', date: '18/04 17:15', teamA: 'Coreia do Sul', teamB: 'Cabo Verde' },
-                { round: 'Rodada 6', date: '18/04 18:05', teamA: 'Haiti', teamB: 'África do Sul' },
-
-                // 7ª RODADA
-                { round: 'Rodada 7', date: '23/04 19:15', teamA: 'Coreia do Sul', teamB: 'Haiti' },
-                { round: 'Rodada 7', date: '23/04 20:05', teamA: 'Irã', teamB: 'África do Sul' },
-                { round: 'Rodada 7', date: '25/04 17:15', teamA: 'Costa do Marfim', teamB: 'Egito' },
-                { round: 'Rodada 7', date: '25/04 18:05', teamA: 'Qatar', teamB: 'Cabo Verde' }
-            ];
-
-            try {
-                let count = 0;
-                for (const game of gamesToInsert) {
-                    // Gera um ID único e aleatório para cada jogo
-                    const gid = `${game.teamA.substring(0,3)}_x_${game.teamB.substring(0,3)}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
-                    
-                    await setDoc(doc(db, 'games', gid), {
-                        teamA: game.teamA,
-                        teamB: game.teamB,
-                        continent: 'copa',
-                        round: game.round,
-                        date: game.date,
-                        local: 'Arena Primor', // Edite se tiver outro nome de campo oficial
-                        status: 'future',
-                        scoreA: 0,
-                        scoreB: 0,
-                        events: [],
-                        createdAt: serverTimestamp()
-                    });
-                    count++;
-                }
-                alert(`SUCESSO! ${count} jogos foram importados. Atualize a página para ver.`);
-            } catch (error) {
-                console.error("Erro ao importar jogos:", error);
-                alert("Ocorreu um erro. Verifique o console do navegador.");
-            }
-        };
-        // ====== FIM DO SCRIPT TEMPORÁRIO ======
     </script>
 </body>
 </html>
