@@ -133,12 +133,11 @@
         <i id="alert-icon-2" data-lucide="bell-ring" class="w-8 h-8 animate-bounce shrink-0"></i>
     </div>
 
-    <header id="main-header" class="relative overflow-hidden bg-app-card sticky top-0 z-header border-b border-[#333] flex justify-center items-center shadow-md transition-all duration-500 h-[180px] sm:h-[220px]">
+    <header id="main-header" class="fixed w-full overflow-hidden bg-app-card top-0 z-header border-b border-[#333] flex justify-center items-center shadow-md transition-all duration-500 h-[180px] sm:h-[220px]">
         <div id="header-media-bg" class="absolute inset-0 z-0 transition-opacity duration-1000 opacity-0"></div>
         <div id="header-overlay" class="absolute inset-0 z-0 bg-black/60 backdrop-blur-[1px] transition-all duration-500"></div>
         
         <div class="relative z-10 flex flex-col items-center justify-center transition-all duration-500 w-full">
-            
             <a href="admin.html" class="absolute -top-2 right-2 sm:right-6 p-2 text-white/30 hover:text-app-gold transition-colors z-50" title="Acesso Restrito">
                 <i data-lucide="lock" class="w-4 h-4"></i>
             </a>
@@ -149,6 +148,8 @@
             </div>
         </div>
     </header>
+
+    <div class="w-full h-[180px] sm:h-[220px] shrink-0"></div>
 
     <div id="global-live-banner" class="hidden flex-col bg-gradient-to-r from-red-900/20 to-app-bg border-b border-red-900/30 animate-fadeIn"></div>
 
@@ -585,15 +586,20 @@
         }
 
         // ==========================================
-        // EFEITO DO HEADER ENCOLHENDO NO SCROLL
+        // EFEITO DO HEADER ENCOLHENDO NO SCROLL (COM HISTERESE)
         // ==========================================
+        let isHeaderShrunk = false; // Memória para não travar o celular repetindo a animação
+        
         window.addEventListener('scroll', () => {
             const header = document.getElementById('main-header');
             const logo = document.getElementById('main-logo');
             const titleContainer = document.getElementById('main-title-container');
             const overlay = document.getElementById('header-overlay');
 
-            if (window.scrollY > 50) {
+            // Só encolhe se passar de 80 e ainda não estiver encolhido
+            if (window.scrollY > 80 && !isHeaderShrunk) {
+                isHeaderShrunk = true;
+                
                 // TELA ROLADA: Cabeçalho vira uma barra fina
                 header.classList.remove('h-[180px]', 'sm:h-[220px]');
                 header.classList.add('h-[70px]', 'sm:h-[80px]');
@@ -606,7 +612,11 @@
                 
                 overlay.classList.remove('bg-black/40', 'backdrop-blur-[1px]');
                 overlay.classList.add('bg-black/80', 'backdrop-blur-md'); // Escurece o fundo
-            } else {
+                
+            // Só expande se subir muito perto do topo (menos de 20)
+            } else if (window.scrollY < 20 && isHeaderShrunk) {
+                isHeaderShrunk = false;
+                
                 // TOPO DA TELA: Cabeçalho expandido
                 header.classList.remove('h-[70px]', 'sm:h-[80px]');
                 header.classList.add('h-[180px]', 'sm:h-[220px]');
