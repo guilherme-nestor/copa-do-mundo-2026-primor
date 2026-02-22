@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Copa do Mundo 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        :root { --color-destaque: #00B16A; }
+        .hidden-view { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slideUp { animation: slideUp 0.3s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-pulse-red { animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-red { 0%, 100% { color: #ef4444; } 50% { color: #f87171; } }
+        .shadow-gold-glow { box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { app: { bg: '#121212', card: '#1E1E1E', text: '#E0E0E0', gold: '#FFD700', highlight: 'var(--color-destaque)' } }, zIndex: { 'header': '100' } }
+            }
+        }
+    </script>
+</head>
+<body class="bg-app-bg text-app-text min-h-screen pb-24 transition-colors duration-300">
+
+    <div id="app-loading" class="fixed inset-0 bg-[#121212] z-[200] flex flex-col items-center justify-center space-y-4 transition-opacity duration-500">
+        <i data-lucide="trophy" class="w-16 h-16 text-app-gold animate-bounce"></i><span class="text-app-gold font-bold tracking-widest animate-pulse">CARREGANDO...</span>
+    </div>
+
+    <header id="main-header" class="relative overflow-hidden bg-app-card sticky top-0 z-header border-b border-[#333] flex justify-center items-center shadow-md transition-all duration-500 h-[180px] sm:h-[220px]">
+        <div id="header-media-bg" class="absolute inset-0 z-0 transition-opacity duration-1000 opacity-0"></div>
+        <div id="header-overlay" class="absolute inset-0 z-0 bg-black/60 backdrop-blur-[1px] transition-all duration-500"></div>
+        
+        <div class="relative z-10 flex flex-col items-center justify-center transition-all duration-500 w-full">
+            
+            <a href="admin.html" class="absolute -top-2 right-2 sm:right-6 p-2 text-white/30 hover:text-app-gold transition-colors z-50" title="Acesso Restrito">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+            </a>
+
+            <img id="main-logo" src="./assets/images/Logo Primor.png" alt="Logo Primor" class="h-16 sm:h-20 object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-all duration-500">
+            <div id="main-title-container" class="transition-all duration-500 overflow-hidden opacity-100 max-h-[50px] mt-2">
+                <h1 class="text-sm sm:text-base font-black text-app-gold tracking-widest drop-shadow-lg uppercase bg-black/40 px-3 py-0.5 rounded-full border border-app-gold/20">Copa do Mundo 2026</h1>
+            </div>
+        </div>
+    </header>
+
+    <div id="global-live-banner" class="hidden flex-col bg-gradient-to-r from-red-900/20 to-app-bg border-b border-red-900/30 animate-fadeIn"></div>
+
+    <main class="p-4 max-w-md mx-auto md:max-w-2xl lg:max-w-4xl">
+        <section id="view-tabelas" class="view-section">
+            <div class="mb-4 mt-2"><h2 class="text-2xl font-bold text-app-highlight transition-colors duration-300" id="section-title">Fase de Grupos</h2><p class="text-gray-400 text-sm" id="condominio-name">Classificação Geral</p></div>
+            <div class="flex p-1 bg-[#2A2A2A] rounded-lg mb-4">
+                <button onclick="switchSubView('classificacao')" id="sub-btn-classificacao" class="flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300">Classificação</button>
+                <button onclick="switchSubView('cartoes')" id="sub-btn-cartoes" class="flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Cartões</button>
+                <button onclick="switchSubView('suspensoes')" id="sub-btn-suspensoes" class="flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Suspensões</button>
+            </div>
+            <div class="bg-app-card rounded-xl overflow-hidden shadow-lg border border-[#333]">
+                <div class="overflow-x-auto no-scrollbar"><div class="min-w-[100%]"><div id="table-header" class="grid grid-cols-12 bg-[#2A2A2A] p-3 text-xs font-semibold text-gray-400 uppercase tracking-wider text-center"></div><div id="main-list" class="divide-y divide-[#333]"></div></div></div>
+                 <div id="table-footer" class="bg-[#252525] p-3 text-xs text-gray-500 flex items-center justify-center gap-2 sticky left-0"></div>
+            </div>
+        </section>
+
+        <section id="view-jogos" class="view-section hidden-view">
+            <div class="mb-6 mt-2"><h2 class="text-2xl font-bold text-app-highlight transition-colors duration-300" id="games-title">Jogos da Copa</h2><p class="text-gray-400 text-sm">Rodada Atual e Anteriores</p></div>
+            <div class="space-y-4" id="games-list-container"></div>
+        </section>
+
+        <section id="view-copa" class="view-section hidden-view">
+            <div class="mb-8 mt-2 text-center"><i data-lucide="trophy" class="w-16 h-16 text-app-gold mx-auto mb-2"></i><h2 class="text-3xl font-bold text-app-gold tracking-widest">FASE FINAL</h2><p class="text-app-gold/70 text-sm font-medium uppercase tracking-wider">Mata-Mata</p></div>
+            <div class="space-y-8 relative pb-10"><div class="absolute left-1/2 top-4 bottom-4 w-0.5 bg-app-gold/30 shadow-[0_0_8px_rgba(255,215,0,0.3)] -translate-x-1/2 z-0"></div><div id="copa-matches-container" class="space-y-8 relative z-10"></div></div>
+        </section>
+
+        <section id="view-stats" class="view-section hidden-view">
+            <div class="mb-6 mt-2"><h2 class="text-2xl font-bold text-app-gold" id="stats-title">Estatísticas Gerais</h2><p class="text-gray-400 text-sm">Dados acumulados da Copa 2026</p></div>
+            <div class="flex p-1 bg-[#2A2A2A] rounded-lg mb-6">
+                <button onclick="switchStatsView('artilharia')" id="stats-btn-artilharia" class="flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-gold text-app-bg transition-all duration-300">Artilharia</button>
+                <button onclick="switchStatsView('cartoes_geral')" id="stats-btn-cartoes_geral" class="flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Ranking de Cartões</button>
+                <button onclick="switchStatsView('jogadores')" id="stats-btn-jogadores" class="flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Jogadores</button>
+            </div>
+            <div class="bg-app-card rounded-xl overflow-hidden shadow-lg border border-app-gold/30"><div id="stats-table-header" class="grid grid-cols-12 bg-app-gold/10 p-3 text-xs font-semibold text-app-gold uppercase tracking-wider text-center"></div><div id="stats-list" class="divide-y divide-[#333]"></div></div>
+        </section>
+
+        <section id="view-galeria" class="view-section hidden-view">
+            <div class="mb-6 mt-2 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-app-highlight transition-colors duration-300">Nossa Arena</h2>
+                    <p class="text-gray-400 text-sm">Fotos e vídeos exclusivos</p>
+                </div>
+                
+                <a style="display: none;" href="#" target="_blank" class="flex items-center justify-center gap-2 bg-transparent hover:bg-[#2A2A2A] text-gray-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold transition-all border border-[#333] active:scale-95">
+                    <i data-lucide="cloud-download" class="w-4 h-4"></i>
+                    Baixar Mídias Originais (Google Drive)
+                </a>
+            </div>
+            
+            <div class="columns-2 sm:columns-3 gap-3 w-full" id="gallery-container"></div>
+        </section>
+    </main>
+
+    <div id="fullscreen-media-modal" class="fixed inset-0 z-[200] hidden bg-black/95 flex items-center justify-center p-2 opacity-0 transition-opacity duration-300">
+        <button onclick="closeFullscreen()" class="absolute top-4 right-4 z-[210] p-2 bg-white/10 rounded-full text-white hover:bg-white/30 transition-colors">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <div id="fullscreen-content" class="w-full h-full flex items-center justify-center relative"></div>
+    </div>
+
+    <div id="match-stats-modal" class="fixed inset-0 z-[110] hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="closeMatchStats()"></div>
+        <div class="bg-[#1E1E1E] w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl border border-[#333] relative z-10 animate-slideUp overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <div class="relative overflow-hidden pt-4 pb-8 px-4 border-b border-[#333]">
+                <div id="modal-arena-bg" class="absolute inset-0 z-0 transition-opacity duration-700 opacity-0"></div>
+                <div class="absolute inset-0 z-0 bg-gradient-to-b from-black/80 via-black/60 to-[#1E1E1E]"></div>
+                
+                <div class="relative z-10 flex justify-between items-center mb-6">
+                    <h3 class="text-white font-bold drop-shadow-md flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-app-gold"></i> Estatísticas da Partida</h3>
+                    <button onclick="closeMatchStats()" class="text-gray-300 hover:text-white bg-black/40 rounded-full p-1.5 backdrop-blur-md transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+
+                <div class="relative z-10 flex items-center justify-center gap-4 sm:gap-6">
+                    <div class="text-center flex-1 min-w-0">
+                        <span class="text-4xl block mb-2 drop-shadow-lg" id="modal-flagA"></span>
+                        <p class="font-bold text-sm sm:text-base truncate px-1 text-white drop-shadow-md" id="modal-teamA"></p>
+                    </div>
+                    <div class="text-4xl font-black bg-black/40 backdrop-blur-md px-5 py-3 rounded-xl text-white border border-white/20 mx-2 shrink-0 shadow-[0_0_15px_rgba(0,0,0,0.5)]" id="modal-score"></div>
+                    <div class="text-center flex-1 min-w-0">
+                        <span class="text-4xl block mb-2 drop-shadow-lg" id="modal-flagB"></span>
+                        <p class="font-bold text-sm sm:text-base truncate px-1 text-white drop-shadow-md" id="modal-teamB"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 bg-[#1E1E1E]">
+                <div class="mb-6"><h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="goal" class="w-4 h-4"></i> Gols</h4><div id="modal-goals-container" class="grid grid-cols-2 gap-4 text-sm"><div id="modal-goals-teamA" class="space-y-2"></div><div id="modal-goals-teamB" class="space-y-2 text-right"></div></div><div id="modal-goals-empty" class="hidden text-sm text-gray-500 italic text-center">Sem gols.</div></div>
+                <div><h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="rectangle-vertical" class="w-4 h-4 rotate-90"></i> Cartões</h4><div id="modal-cards-container" class="grid grid-cols-2 gap-4 text-sm"><div id="modal-cards-teamA" class="space-y-2"></div><div id="modal-cards-teamB" class="space-y-2 text-right"></div></div><div id="modal-cards-empty" class="hidden text-sm text-gray-500 italic text-center">Sem cartões.</div></div>
+            </div>
+            
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-app-card border-t border-[#333] py-2 px-4 flex justify-between items-center text-xs z-50">
+        <button onclick="switchView('tabelas')" id="nav-tabelas" class="nav-item flex flex-col items-center text-app-highlight gap-1 transition-colors duration-300 w-1/5"><i data-lucide="table-2" class="w-6 h-6"></i><span class="font-semibold">Tabelas</span></button>
+        <button onclick="switchView('jogos')" id="nav-jogos" class="nav-item relative flex flex-col items-center text-gray-500 gap-1 w-1/5"><div class="relative"><i data-lucide="calendar" class="w-6 h-6"></i><span id="nav-live-indicator" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-app-card rounded-full hidden animate-pulse"></span></div><span>Jogos</span></button>
+        <div class="w-1/5 flex justify-center"><button onclick="switchView('copa')" id="nav-copa" class="flex items-center justify-center bg-[#2A2A2A] text-gray-500 w-14 h-14 rounded-full -mt-8 border-4 border-app-bg shadow-lg shadow-black/50 transition-all duration-300"><i data-lucide="trophy" class="w-7 h-7"></i></button></div>
+        <button onclick="switchView('stats')" id="nav-stats" class="nav-item flex flex-col items-center text-gray-500 gap-1 w-1/5"><i data-lucide="bar-chart-3" class="w-6 h-6"></i><span>Estatísticas</span></button>
+        <button onclick="switchView('galeria')" id="nav-galeria" class="nav-item flex flex-col items-center text-gray-500 gap-1 w-1/5"><i data-lucide="image" class="w-6 h-6"></i><span>Galeria</span></button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, collectionGroup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        const firebaseConfig={apiKey:"AIzaSyDWm4SWhc4P9PoRrbPe3wmz69DtsDMhoeQ",authDomain:"copa-do-mundo-2027-primor.firebaseapp.com",projectId:"copa-do-mundo-2027-primor",storageBucket:"copa-do-mundo-2027-primor.firebasestorage.app",messagingSenderId:"324842540001",appId:"1:324842540001:web:372dafc2b824ceabd9a0a0",measurementId:"G-JDY3S9T6DM"};
+        const app=initializeApp(firebaseConfig), db=getFirestore(app);
+        
+        const PREDEFINED_TEAMS = {
+            "TBD": { name: "A Definir", flag: "❓", group: "copa" },
+            "Costa do Marfim": { name: "Costa do Marfim", flag: "🇨🇮", group: "A" },
+            "Egito": { name: "Egito", flag: "🇪🇬", group: "A" },
+            "Qatar": { name: "Qatar", flag: "🇶🇦", group: "A" },
+            "Irã": { name: "Irã", flag: "🇮🇷", group: "A" },
+            "Coreia do Sul": { name: "Coreia do Sul", flag: "🇰🇷", group: "B" },
+            "Haiti": { name: "Haiti", flag: "🇭🇹", group: "B" },
+            "África do Sul": { name: "África do Sul", flag: "🇿🇦", group: "B" },
+            "Cabo Verde": { name: "Cabo Verde", flag: "🇨🇻", group: "B" }
+        };
+        
+        let allGames=[], allPlayers=[], teamsWithPlayers=new Set();
+        let groupsData = { 'A': [], 'B': [] };
+        let allCards = [], allSuspensions = [], allGroupGames = [], copaMatchesData = [];
+
+        let gamesLoaded=false, playersLoaded=false;
+        function checkLoading(){ if(gamesLoaded && playersLoaded) { document.getElementById('app-loading').style.opacity='0'; setTimeout(()=>document.getElementById('app-loading').classList.add('hidden-view'),500); } }
+
+        onSnapshot(collection(db,'games'),(s)=>{ allGames=[]; s.forEach(d=>allGames.push({id:d.id,...d.data()})); allGames.sort((a,b)=>{const p=d=>{if(!d)return 0;const x=d.split(/[\/\s:]/);return new Date(2026,x[1]-1,x[0],x[2]||0,x[3]||0).getTime();};return p(a.date)-p(b.date);}); recalculateAll(); gamesLoaded=true; checkLoading(); });
+        onSnapshot(collectionGroup(db,'players'),(s)=>{ allPlayers=[]; teamsWithPlayers.clear(); s.forEach(d=>{ const path=d.ref.path.split('/'); const pid=d.id, tid=path[1]; allPlayers.push({id:pid,teamId:tid,...d.data()}); teamsWithPlayers.add(tid); }); recalculateAll(); playersLoaded=true; checkLoading(); });
+        function recalculateAll() {
+            groupsData = { 'A': [], 'B': [] };
+            allCards = []; allSuspensions = []; allGroupGames = []; copaMatchesData = [];
+            let teamStats={}, participatingTeams=new Set(); 
+            
+            for(let tid in PREDEFINED_TEAMS) {
+                teamStats[tid]={name:PREDEFINED_TEAMS[tid].name, flag:PREDEFINED_TEAMS[tid].flag, group:PREDEFINED_TEAMS[tid].group, pts:0, j:0, v:0, e:0, d:0, gp:0, gc:0, sg:0, playingNow:false, liveResult:''};
+            }
+
+            allGames.forEach(g => {
+                const tA=PREDEFINED_TEAMS[g.teamA]||{flag:'?',name:g.teamA, group: 'copa'};
+                const tB=PREDEFINED_TEAMS[g.teamB]||{flag:'?',name:g.teamB, group: 'copa'};
+                participatingTeams.add(g.teamA); participatingTeams.add(g.teamB);
+                let goals=[], cards=[];
+                
+                if(g.events) g.events.forEach(ev => {
+                    const pName = ev.playerName || ev.player || 'Desconhecido';
+                    if(ev.type==='goal') goals.push({player:pName, team:ev.teamSide});
+                    if(ev.type==='own_goal') goals.push({player:pName+' (GC)', team:ev.teamSide});
+                    if(ev.type.includes('card')) cards.push({player:pName, team:ev.teamSide, type:ev.type.replace('_card','')});
+                });
+                
+                const matchData = { id:g.id, type: g.status, stage:g.round, round:g.round, status:g.status, teamA:tA.name, flagA:tA.flag, scoreA:Number(g.scoreA??0), teamB:tB.name, flagB:tB.flag, scoreB:Number(g.scoreB??0), date:g.date, local:g.local, details:{goals,cards} };
+
+                if(g.round.toLowerCase().includes('final') || g.round.toLowerCase().includes('3º') || g.round.toLowerCase().includes('oitavas') || g.round.toLowerCase().includes('quartas') || g.round.toLowerCase().includes('semi')) {
+                    matchData.isFinal = g.round.toLowerCase().includes('final') && !g.round.toLowerCase().includes('semi') && !g.round.toLowerCase().includes('3º');
+                    copaMatchesData.push(matchData);
+                } else {
+                    allGroupGames.push(matchData);
+                    if(g.status==='ended'||g.status==='live') {
+                        const sA=Number(g.scoreA??0), sB=Number(g.scoreB??0);
+                        updateTeamStats(teamStats[g.teamA], sA, sB, g.status==='live'); 
+                        updateTeamStats(teamStats[g.teamB], sB, sA, g.status==='live');
+                    }
+                }
+            });
+
+            for(let tid in teamStats) { 
+                const ts=teamStats[tid]; 
+                if(participatingTeams.has(tid) && (ts.group === 'A' || ts.group === 'B')) { 
+                    ts.sg = ts.gp - ts.gc; 
+                    groupsData[ts.group].push(ts); 
+                } 
+            }
+            
+            ['A', 'B'].forEach(group => {
+                groupsData[group].sort((a,b)=>b.pts-a.pts||b.v-a.v||b.sg-a.sg||b.gp-a.gp); 
+                groupsData[group].forEach((t,i)=>t.pos=i+1);
+            });
+
+            allPlayers.forEach(p => {
+                const t=PREDEFINED_TEAMS[p.teamId]; if(!t) return;
+                if((p.yellowCards||0)>0 || (p.redCards||0)>0) {
+                    allCards.push({name:p.name, team:t.name, flag:t.flag, yellow:p.yellowCards||0, red:p.redCards||0});
+                }
+                if(p.suspended) {
+                    allSuspensions.push({name:p.name, team:t.name, flag:t.flag, reason:"Suspenso", games_left:1});
+                }
+            });
+            refreshCurrentView();
+
+            if (currentOpenGameId) {
+                const updatedGame = allGroupGames.find(x => x.id === currentOpenGameId) || copaMatchesData.find(x => x.id === currentOpenGameId);
+                if (updatedGame) window.updateModalUI(updatedGame);
+            }
+        }
+
+        function updateTeamStats(ts,gf,gs,isLive){ 
+            if(!ts)return; 
+            ts.j++; ts.gp+=gf; ts.gc+=gs; 
+            if(gf>gs){ts.v++;ts.pts+=3;} else if(gf===gs){ts.e++;ts.pts+=1;} else{ts.d++;}
+            if(isLive){ ts.playingNow=true; ts.liveResult=gf>gs?'v':(gf===gs?'e':'d'); }
+        }
+
+        function refreshCurrentView() { 
+            const v=document.querySelector('.view-section:not(.hidden-view)')?.id; 
+            if(v==='view-tabelas'||v==='view-jogos') window.switchContinent(); 
+            else if(v==='view-copa') renderCopaMatches(); 
+            else if(v==='view-stats') renderStats(); 
+            updateGlobalLiveStatus(); 
+        }
+
+        window.getShortName=(n)=>{const a={'Brasil':'BRA','Argentina':'ARG','Uruguai':'URU','Colômbia':'COL','Chile':'CHI','EUA':'EUA','México':'MEX','França':'FRA','Alemanha':'ALE','Itália':'ITA','Espanha':'ESP','Inglaterra':'ING','Portugal':'POR','Holanda':'HOL','Bélgica':'BEL','Croácia':'CRO','Senegal':'SEN','Marrocos':'MAR','Nigéria':'NGA','Egito':'EGY','Camarões':'CMR','Gana':'GAN','Japão':'JPN','Coreia do Sul':'KOR','Austrália':'AUS','Irã':'IRA','Arábia Saudita':'ARA', 'A Definir': 'TBD', 'Costa do Marfim': 'CIV', 'Qatar': 'QAT', 'Haiti': 'HAI', 'África do Sul': 'RSA', 'Cabo Verde': 'CPV'};return a[n]||n.substring(0,3).toUpperCase();}
+        let currentSubView='classificacao', currentStatsView='artilharia', selectedPlayerTeam=null;
+
+        window.switchContinent=()=>{
+            document.getElementById('section-title').innerText=`Fase de Grupos`;
+            document.getElementById('games-title').innerText=`Jogos da Copa`;
+            document.getElementById('condominio-name').innerText=`Classificação Geral`; 
+            renderMainList(); 
+            renderGames(); 
+            updateGlobalLiveStatus();
+        }
+
+        // ==========================================
+        // EFEITO DO HEADER ENCOLHENDO NO SCROLL
+        // ==========================================
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            const logo = document.getElementById('main-logo');
+            const titleContainer = document.getElementById('main-title-container');
+            const overlay = document.getElementById('header-overlay');
+
+            if (window.scrollY > 50) {
+                // TELA ROLADA: Cabeçalho vira uma barra fina
+                header.classList.remove('h-[180px]', 'sm:h-[220px]');
+                header.classList.add('h-[70px]', 'sm:h-[80px]');
+                
+                logo.classList.remove('h-16', 'sm:h-20');
+                logo.classList.add('h-10', 'sm:h-12');
+                
+                titleContainer.classList.remove('opacity-100', 'max-h-[50px]', 'mt-2');
+                titleContainer.classList.add('opacity-0', 'max-h-0', 'mt-0'); // Esconde o texto
+                
+                overlay.classList.remove('bg-black/40', 'backdrop-blur-[1px]');
+                overlay.classList.add('bg-black/80', 'backdrop-blur-md'); // Escurece o fundo
+            } else {
+                // TOPO DA TELA: Cabeçalho expandido
+                header.classList.remove('h-[70px]', 'sm:h-[80px]');
+                header.classList.add('h-[180px]', 'sm:h-[220px]');
+                
+                logo.classList.remove('h-10', 'sm:h-12');
+                logo.classList.add('h-16', 'sm:h-20');
+                
+                titleContainer.classList.remove('opacity-0', 'max-h-0', 'mt-0');
+                titleContainer.classList.add('opacity-100', 'max-h-[50px]', 'mt-2'); // Mostra o texto
+                
+                overlay.classList.remove('bg-black/80', 'backdrop-blur-md');
+                overlay.classList.add('bg-black/40', 'backdrop-blur-[1px]'); // Clareia o fundo
+            }
+        });
+
+        function renderMainList() {
+            const l=document.getElementById('main-list'), h=document.getElementById('table-header'), f=document.getElementById('table-footer'); l.innerHTML='';
+            if(currentSubView==='classificacao'){
+                h.innerHTML=`<div class="col-span-1">#</div><div class="col-span-3 text-left pl-2">Time</div><div class="col-span-1" title="Pontos">P</div><div class="col-span-1" title="Jogos">J</div><div class="col-span-1" title="Vitórias">V</div><div class="col-span-1" title="Empates">E</div><div class="col-span-1" title="Derrotas">D</div><div class="col-span-1" title="Gols Pró">GP</div><div class="col-span-1" title="Gols Contra">GC</div><div class="col-span-1" title="Saldo">SG</div>`;
+                
+                ['A', 'B'].forEach(groupId => {
+                    const groupTeams = groupsData[groupId];
+                    if(groupTeams.length > 0) {
+                        l.innerHTML += `<div class="col-span-12 bg-[#252525] p-2 text-center text-app-gold font-bold uppercase tracking-widest text-xs border-y border-[#333] mt-2">GRUPO ${groupId}</div>`;
+                        
+                        groupTeams.forEach((t, i) => {
+                            let rowClass = "border-l-4 hover:bg-[#252525] transition-all duration-300 animate-fadeIn ", posColor = "text-gray-500";
+
+                            if(i === 0) { 
+                                rowClass += "border-green-500"; 
+                                posColor = "text-green-500 font-bold"; 
+                            } else if(i === 1 || i === 2) { 
+                                rowClass += "border-yellow-500"; 
+                                posColor = "text-yellow-500 font-bold"; 
+                            } else { 
+                                rowClass += "border-red-500 opacity-80"; 
+                                posColor = "text-red-500 font-bold"; 
+                            }
+
+                            const lc=t.playingNow?"animate-pulse-red font-bold":"", vc=t.liveResult==='v'?lc:"text-gray-400", ec=t.liveResult==='e'?lc:"text-gray-400", dc=t.liveResult==='d'?lc:"text-gray-400";
+                            l.innerHTML+=`<div class="grid grid-cols-12 p-4 items-center text-center ${rowClass}"><div class="col-span-1 ${posColor}">${t.pos}</div><div class="col-span-3 text-left pl-2 font-semibold flex items-center gap-2 text-sm truncate"><span class="w-5 h-5 min-w-[1.25rem] rounded-full bg-[#333] flex items-center justify-center text-[10px]">${t.flag}</span><span class="md:hidden" title="${t.name}">${window.getShortName(t.name)}</span><span class="hidden md:inline truncate">${t.name}</span></div><div class="col-span-1 font-bold ${t.playingNow?'animate-pulse-red':''}">${t.pts}</div><div class="col-span-1 ${t.playingNow?lc:'text-gray-400'}">${t.j}</div><div class="col-span-1 ${vc}">${t.v}</div><div class="col-span-1 ${ec}">${t.e}</div><div class="col-span-1 ${dc}">${t.d}</div><div class="col-span-1 text-gray-400">${t.gp}</div><div class="col-span-1 text-gray-400">${t.gc}</div><div class="col-span-1 text-gray-400">${t.sg > 0 ? '+'+t.sg : t.sg}</div></div>`;
+                        });
+                    }
+                });
+                
+                f.innerHTML=`<div class="flex items-center gap-4 w-full justify-center"><div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div><span>Semi</span></div><div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-yellow-500"></div><span>Repescagem</span></div><div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div><span>Eliminado</span></div></div>`;
+            } else if(currentSubView==='cartoes'){
+                h.innerHTML=`<div class="col-span-8 text-left pl-4">Jogador</div><div class="col-span-2 text-yellow-500">CA</div><div class="col-span-2 text-red-500">CV</div>`;
+                if(!allCards.length) l.innerHTML='<div class="p-8 text-center text-gray-500 animate-fadeIn">Nenhum cartão.</div>';
+                else allCards.sort((a,b)=>b.red-a.red||b.yellow-a.yellow).forEach(p=>l.innerHTML+=`<div class="grid grid-cols-12 p-4 items-center text-center hover:bg-[#252525] transition-colors animate-fadeIn"><div class="col-span-8 text-left pl-2 font-medium text-gray-300 flex flex-col truncate"><span>${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${p.flag}</span> ${p.team}</span></div><div class="col-span-2 font-semibold text-yellow-500">${p.yellow}</div><div class="col-span-2 font-semibold text-red-500">${p.red}</div></div>`);
+                f.innerHTML='<span>CA: Amarelos • CV: Vermelhos</span>';
+            } else {
+                h.innerHTML=`<div class="col-span-6 text-left pl-4">Jogador</div><div class="col-span-4 text-left">Motivo</div><div class="col-span-2">Jogos</div>`;
+                if(!allSuspensions.length) l.innerHTML='<div class="p-8 text-center text-gray-500 animate-fadeIn flex flex-col items-center gap-2"><i data-lucide="shield-check" class="w-8 h-8 opacity-50"></i><span>Nenhum suspenso.</span></div>';
+                else allSuspensions.forEach(p=>l.innerHTML+=`<div class="grid grid-cols-12 p-4 items-center text-center hover:bg-[#252525] transition-colors border-l-4 border-red-500/50 animate-fadeIn"><div class="col-span-6 text-left pl-2 font-medium text-gray-300 flex flex-col truncate"><span>${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${p.flag}</span> ${p.team}</span></div><div class="col-span-4 text-left text-xs text-red-400 font-medium truncate">${p.reason}</div><div class="col-span-2 font-bold text-gray-400">${p.games_left}</div></div>`);
+                f.innerHTML='<span>Jogadores fora da próxima partida.</span>';
+            }
+            lucide.createIcons();
+        }
+
+        function renderGames() {
+            const l=document.getElementById('games-list-container'); l.innerHTML='';
+            if(!allGroupGames.length) l.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum jogo agendado.</div>';
+            else allGroupGames.sort((a,b) => { if(a.type==='live'&&b.type!=='live')return -1; if(b.type==='live'&&a.type!=='live')return 1; return 0; }).forEach(g => {
+                const tA=`<span class="font-bold text-base sm:text-lg truncate md:hidden">${window.getShortName(g.teamA)}</span><span class="font-bold text-base sm:text-lg truncate hidden md:inline">${g.teamA}</span>`, tB=`<span class="font-bold text-base sm:text-lg truncate md:hidden">${window.getShortName(g.teamB)}</span><span class="font-bold text-base sm:text-lg truncate hidden md:inline">${g.teamB}</span>`;
+                window[`game_${g.id}`]=g;
+                 if(g.type==='live') l.innerHTML+=`<div class="bg-app-card p-4 rounded-xl border-l-4 border-red-500 shadow-md animate-fadeIn"><div class="flex justify-between text-xs mb-3 font-bold"><span class="text-red-500 flex items-center gap-1.5"><span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span></span> AO VIVO</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0">${tA}<span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagA}</span></div><div class="px-4 py-2 bg-red-500/10 rounded-lg text-red-500 font-mono font-bold mx-2 text-xl border border-red-500/20 shrink-0">${g.scoreA} - ${g.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagB}</span>${tB}</div></div><div class="text-center text-xs text-gray-500 mt-3 pt-3 border-t border-[#333] mb-3">Local: ${g.local}</div><div class="text-center"><button onclick='openStatsModal(window["game_${g.id}"])' class="text-xs font-bold text-red-500 flex items-center justify-center gap-1 mx-auto hover:bg-red-500/10 py-1.5 px-4 rounded-full transition-colors border border-red-500/30"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> Ver Estatísticas</button></div></div>`;
+                else if(g.type==='future') l.innerHTML+=`<div class="bg-app-card p-4 rounded-xl border-l-4 border-app-highlight shadow-md animate-fadeIn opacity-90"><div class="flex justify-between text-xs text-gray-500 mb-3 font-semibold"><span>${g.round}</span><span>${g.date}</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0">${tA}<span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagA}</span></div><div class="px-4 py-1 bg-[#121212] rounded text-gray-400 font-mono font-bold mx-4 shrink-0">vs</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagB}</span>${tB}</div></div><div class="text-center text-xs text-gray-500 mt-3 pt-3 border-t border-[#333]">Local: ${g.local}</div></div>`;
+                else l.innerHTML+=`<div class="bg-app-card p-4 rounded-xl border-l-4 border-[#333] opacity-80 animate-fadeIn"><div class="flex justify-between text-xs text-gray-500 mb-3 font-semibold"><span>${g.round}</span><span>Encerrado</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0"><span class="text-gray-300">${tA}</span><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagA}</span></div><div class="px-4 py-1 bg-[#121212] rounded text-app-highlight font-mono font-bold mx-4 text-xl tracking-widest shrink-0">${g.scoreA} - ${g.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagB}</span><span class="text-gray-300">${tB}</span></div></div><div class="text-center mt-4 pt-3 border-t border-[#333]"><button onclick='openStatsModal(window["game_${g.id}"])' class="text-xs font-semibold text-app-highlight flex items-center justify-center gap-1 mx-auto hover:bg-[#333] py-1 px-3 rounded-full transition-colors"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> Ver Estatísticas</button></div></div>`;
+            });
+            lucide.createIcons();
+        }
+
+        window.renderCopaMatches=()=>{
+            const c=document.getElementById('copa-matches-container'); c.innerHTML=''; let cs='';
+            if(!copaMatchesData.length) c.innerHTML='<div class="text-center text-gray-500 py-12">A Fase Final ainda não começou.</div>';
+            else copaMatchesData.forEach(m=>{
+                window[`game_${m.id}`]=m;
+                if(m.stage!==cs && !m.isFinal && !m.stage.includes('3º')){ cs=m.stage; c.innerHTML+=`<div class="flex justify-center relative z-10 mt-8 mb-4"><h3 class="text-center text-app-gold font-bold uppercase tracking-widest bg-app-bg px-6 py-1 border border-app-gold/30 rounded-full text-xs shadow-gold-glow">${cs}</h3></div>`; }
+                const tA=`<span class="md:hidden">${window.getShortName(m.teamA)}</span><span class="hidden md:inline">${m.teamA}</span>`, tB=`<span class="md:hidden">${window.getShortName(m.teamB)}</span><span class="hidden md:inline">${m.teamB}</span>`;
+                if(m.isFinal) c.innerHTML+=`<div class="relative z-10 mt-12"><div class="flex justify-center mb-3"><i data-lucide="crown" class="text-app-gold w-10 h-10 animate-bounce drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]"></i></div><h3 class="text-center text-app-gold text-lg font-black uppercase tracking-[0.2em] bg-app-bg relative z-10 inline-block px-8 mx-auto left-[50%] -translate-x-1/2 mb-6 border-2 border-app-gold py-2 rounded-full shadow-[0_0_25px_rgba(255,215,0,0.4)]">GRANDE FINAL</h3><div class="bg-gradient-to-b from-app-gold/30 to-app-card border-2 border-app-gold rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(255,215,0,0.2)] p-1"><div class="bg-app-bg/60 backdrop-blur-md p-6 rounded-xl flex justify-between items-center"><div class="flex flex-col items-center gap-3 flex-1"><div class="w-20 h-20 bg-app-gold/10 rounded-full flex items-center justify-center border-2 border-app-gold/40 shadow-gold-glow"><span class="text-4xl">${m.flagA}</span></div><span class="font-bold text-app-gold text-lg text-center">${tA}</span></div><div class="flex flex-col items-center px-4"><span class="text-3xl font-black text-app-gold drop-shadow-lg">${m.status==='future'?'VS':m.scoreA+'-'+m.scoreB}</span><span class="text-xs text-app-gold/80 uppercase mt-2 text-center font-semibold tracking-wider">${m.date}<br>${m.local}</span></div><div class="flex flex-col items-center gap-3 flex-1"><div class="w-20 h-20 bg-app-gold/10 rounded-full flex items-center justify-center border-2 border-app-gold/40 shadow-gold-glow"><span class="text-4xl">${m.flagB}</span></div><span class="font-bold text-app-gold text-lg text-center">${tB}</span></div></div></div></div>`;
+                else if(m.stage.includes('3º')) c.innerHTML+=`<div class="relative z-10 mt-10"><h3 class="text-center text-gray-400 text-xs font-bold uppercase tracking-widest bg-app-bg relative z-10 inline-block px-4 py-1 border border-gray-700 rounded-full mx-auto left-[50%] -translate-x-1/2 mb-3">Disputa de 3º Lugar</h3><div class="bg-gradient-to-br from-[#2A2A2A] to-app-card p-4 rounded-xl border border-gray-700 shadow-lg opacity-90"><div class="flex justify-between text-xs text-gray-400 mb-3 uppercase tracking-wider font-semibold"><span>${m.stage}</span><span>${m.date}</span></div><div class="flex items-center justify-between text-gray-300"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0"><span class="font-bold text-base truncate">${tA}</span><span class="text-2xl shrink-0">${m.flagA}</span></div><div class="px-3 py-1 bg-[#1a1a1a] rounded-md font-mono text-xs font-bold mx-4 text-gray-500 shrink-0">${m.status==='future'?'VS':m.scoreA+'-'+m.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="text-2xl shrink-0">${m.flagB}</span><span class="font-bold text-base truncate">${tB}</span></div></div><div class="text-center text-xs text-gray-600 mt-3 pt-2 border-t border-gray-800">Local: ${m.local}</div></div></div>`;
+                else if(m.status==='past'||m.status==='ended') c.innerHTML+=`<div class="bg-gradient-to-r from-app-card to-[#252525] p-3 rounded-xl border-l-[6px] border-app-gold/50 shadow-lg relative overflow-hidden"><div class="flex justify-between text-xs text-app-gold/70 mb-2 uppercase tracking-wider font-bold"><span>${m.stage}</span><span>Encerrado</span></div><div class="flex items-center justify-between py-2"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0"><span class="font-bold truncate ${m.scoreA>m.scoreB?'text-app-gold text-base':'text-gray-400'}">${tA}</span><span class="text-2xl drop-shadow-md shrink-0">${m.flagA}</span></div><div class="px-4 py-2 bg-[#121212] rounded-lg text-app-gold font-mono font-bold mx-2 text-xl shadow-inner border border-app-gold/10 shrink-0">${m.scoreA} - ${m.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="text-2xl drop-shadow-md shrink-0">${m.flagB}</span><span class="font-bold truncate ${m.scoreB>m.scoreA?'text-app-gold text-base':'text-gray-400'}">${tB}</span></div></div><div class="mt-3 pt-2 border-t border-app-gold/10 flex justify-center"><button onclick="openStatsModal(window['game_${m.id}'])" class="text-xs font-bold text-app-gold flex items-center gap-1.5 hover:bg-app-gold/10 px-4 py-1.5 rounded-full transition-all active:scale-95"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Ver Estatísticas</button></div></div>`;
+                else c.innerHTML+=`<div class="bg-app-card p-3 rounded-xl border-l-[6px] border-app-gold shadow-md"><div class="flex justify-between text-xs text-gray-400 mb-2 uppercase tracking-wider font-semibold"><span>${m.stage}</span><span class="text-app-gold">${m.date}</span></div><div class="flex items-center justify-between py-2"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0"><span class="font-bold text-base truncate">${tA}</span><span class="text-2xl shrink-0">${m.flagA}</span></div><div class="px-3 py-1 bg-app-gold/20 rounded text-app-gold font-mono text-xs font-bold mx-4 shrink-0">VS</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="text-2xl shrink-0">${m.flagB}</span><span class="font-bold text-base truncate">${tB}</span></div></div><div class="text-center text-xs text-gray-500 mt-3 pt-2 border-t border-[#333]">Local: ${m.local}</div></div>`;
+            });
+            lucide.createIcons();
+        }
+
+        window.renderStats=()=>{
+            const list=document.getElementById('stats-list'), h=document.getElementById('stats-table-header'); list.innerHTML='';
+            if(currentStatsView==='artilharia'){
+                h.classList.remove('hidden'); h.innerHTML=`<div class="col-span-2">Pos</div><div class="col-span-8 text-left pl-2">Jogador</div><div class="col-span-2 text-right pr-4">Gols</div>`;
+                const scorers=allPlayers.filter(p=>(p.goals||0)>0).sort((a,b)=>b.goals-a.goals);
+                if(!scorers.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum gol marcado.</div>';
+                else scorers.slice(0,20).forEach((p,i)=>{ const t=PREDEFINED_TEAMS[p.teamId]||{flag:'?',name:p.teamId}; list.innerHTML+=`<div class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/5 transition-colors ${i<3?'font-semibold':''} animate-fadeIn"><div class="col-span-2 ${i===0?'text-app-gold text-lg':''}">${i+1}º</div><div class="col-span-8 text-left pl-2 flex flex-col truncate"><span class="text-gray-200 truncate">${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${t.flag}</span> ${t.name}</span></div><div class="col-span-2 font-bold text-app-gold text-right pr-4">${p.goals}</div></div>`; });
+            
+            } else if(currentStatsView==='cartoes_geral'){
+                h.classList.remove('hidden'); h.innerHTML=`<div class="col-span-8 text-left pl-4">Seleção</div><div class="col-span-2 text-yellow-500">CA</div><div class="col-span-2 text-red-500">CV</div>`;
+                const tc = {}; 
+                allGames.forEach(game => {
+                    if (game.events && Array.isArray(game.events)) {
+                        game.events.forEach(ev => {
+                            if (ev.teamId && (ev.type === 'yellow_card' || ev.type === 'red_card')) {
+                                if (!tc[ev.teamId]) tc[ev.teamId] = { y: 0, r: 0 };
+                                if (ev.type === 'yellow_card') tc[ev.teamId].y++;
+                                else if (ev.type === 'red_card') tc[ev.teamId].r++;
+                            }
+                        });
+                    }
+                });
+                const st=Object.keys(tc).filter(tid=>(tc[tid].y>0||tc[tid].r>0)).sort((a,b)=>tc[b].r-tc[a].r||tc[b].y-tc[a].y);
+                if(!st.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum cartão.</div>';
+                else st.forEach(tid=>{ const t=PREDEFINED_TEAMS[tid]||{flag:'?',name:tid},c=tc[tid]; list.innerHTML+=`<div class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/5 transition-colors animate-fadeIn"><div class="col-span-8 text-left pl-4 flex items-center gap-3 truncate"><span class="text-2xl shrink-0">${t.flag}</span><span class="font-semibold text-gray-200 truncate"><span class="md:hidden">${window.getShortName(t.name)}</span><span class="hidden md:inline">${t.name}</span></span></div><div class="col-span-2 font-semibold text-yellow-500">${c.y}</div><div class="col-span-2 font-semibold text-red-500">${c.r}</div></div>`; });
+            } else {
+                if(selectedPlayerTeam===null){
+                    h.classList.add('hidden');
+                    Object.keys(PREDEFINED_TEAMS).filter(tid=>teamsWithPlayers.has(tid)).sort().forEach(tid=>{ list.innerHTML+=`<div onclick="viewTeamPlayers('${tid}')" class="p-4 flex items-center justify-between hover:bg-[#252525] cursor-pointer transition-colors animate-fadeIn"><div class="flex items-center gap-4"><span class="text-3xl">${PREDEFINED_TEAMS[tid].flag}</span><div class="flex flex-col"><span class="font-bold text-lg">${PREDEFINED_TEAMS[tid].name}</span><span class="text-xs text-app-gold/70">Exibir jogadores</span></div></div><i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i></div>`; });
+                } else {
+                    h.classList.remove('hidden'); const t=PREDEFINED_TEAMS[selectedPlayerTeam]; h.innerHTML=`<div class="col-span-12 flex items-center gap-3 text-left pl-2"><button onclick="backToTeamList()" class="p-1 -ml-1 text-app-gold hover:bg-app-gold/10 rounded-full"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><span class="text-2xl">${t.flag}</span><span class="text-app-gold">${t.name}</span></div>`;
+                    const pls=allPlayers.filter(p=>p.teamId===selectedPlayerTeam).sort((a,b)=>(Number(a.number)||0)-(Number(b.number)||0));
+                    if(!pls.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum jogador cadastrado.</div>';
+                    else pls.forEach(p=>{ list.innerHTML+=`<div class="flex items-center p-4 hover:bg-[#252525] transition-colors animate-fadeIn gap-4"><div class="font-mono text-xl text-app-gold/50 w-8 text-center shrink-0">${p.number}</div><div class="font-semibold text-lg truncate">${p.name}</div></div>`; });
+                }
+            }
+            lucide.createIcons();
+        }
+        window.viewTeamPlayers=(tid)=>{selectedPlayerTeam=tid;renderStats();}
+        window.backToTeamList=()=>{selectedPlayerTeam=null;renderStats();}
+
+        window.updateGlobalLiveStatus=()=>{
+            let l=[]; 
+            allGames.forEach(g => {
+                if(g.status === 'live') {
+                    const tA = PREDEFINED_TEAMS[g.teamA] || {name: g.teamA, flag: '?'};
+                    const tB = PREDEFINED_TEAMS[g.teamB] || {name: g.teamB, flag: '?'};
+                    l.push({ ...g, teamA: tA.name, flagA: tA.flag, teamB: tB.name, flagB: tB.flag });
+                }
+            });
+            
+            document.getElementById('nav-live-indicator').classList.toggle('hidden',l.length===0);
+            const b=document.getElementById('global-live-banner');
+            if(l.length>0){ b.innerHTML=''; l.forEach(g=>{ b.innerHTML+=`<div onclick="switchView('jogos')" class="cursor-pointer flex items-center justify-between p-3 hover:bg-red-500/5 transition-colors"><div class="flex items-center gap-3 flex-1 justify-end"><span class="font-semibold text-sm text-right"><span class="md:hidden">${window.getShortName(g.teamA)}</span><span class="hidden md:inline">${g.teamA}</span></span><span class="text-xl">${g.flagA}</span></div><div class="flex flex-col items-center mx-4 shrink-0"><div class="bg-red-600 text-white font-bold px-3 py-0.5 rounded text-sm mb-1">${g.scoreA} - ${g.scoreB}</div><span class="text-[10px] text-red-400 uppercase font-bold tracking-wider animate-pulse flex items-center gap-1"><span class="w-1.5 h-1.5 bg-red-500 rounded-full inline-block"></span> AO VIVO</span></div><div class="flex items-center gap-3 flex-1 justify-start"><span class="text-xl">${g.flagB}</span><span class="font-semibold text-sm text-left"><span class="md:hidden">${window.getShortName(g.teamB)}</span><span class="hidden md:inline">${g.teamB}</span></span></div></div>`; }); b.classList.remove('hidden'); b.classList.add('flex');
+            } else { b.classList.add('hidden'); b.classList.remove('flex'); }
+        }
+
+        let currentOpenGameId = null;
+        let arenaCarouselInterval = null;
+
+        window.updateModalUI = (g) => {
+            document.getElementById('modal-teamA').innerText=g.teamA; document.getElementById('modal-flagA').innerText=g.flagA;
+            document.getElementById('modal-teamB').innerText=g.teamB; document.getElementById('modal-flagB').innerText=g.flagB;
+            document.getElementById('modal-score').innerText=`${g.scoreA} - ${g.scoreB}`;
+            const ga=document.getElementById('modal-goals-teamA'), gb=document.getElementById('modal-goals-teamB'), ca=document.getElementById('modal-cards-teamA'), cb=document.getElementById('modal-cards-teamB');
+            ga.innerHTML=''; gb.innerHTML=''; ca.innerHTML=''; cb.innerHTML='';
+            const goals=g.details.goals||[], cards=g.details.cards||[];
+            document.getElementById('modal-goals-empty').classList.toggle('hidden',goals.length>0); document.getElementById('modal-goals-container').classList.toggle('hidden',goals.length===0);
+            document.getElementById('modal-cards-empty').classList.toggle('hidden',cards.length>0); document.getElementById('modal-cards-container').classList.toggle('hidden',cards.length===0);
+            const agg={A:{},B:{}}; goals.forEach(gl=>{const n=gl.player.replace(' (P)',''); agg[gl.team][n]=(agg[gl.team][n]||0)+1;});
+            for(let p in agg.A) ga.innerHTML+=`<div class="flex justify-start"><div class="bg-[#333] px-3 py-1.5 rounded-full flex items-center gap-2 max-w-full"><span class="font-semibold truncate">${p} ${agg.A[p]>1?`(x${agg.A[p]})`:''}</span><i data-lucide="football" class="w-3 h-3 text-gray-400 shrink-0"></i></div></div>`;
+            for(let p in agg.B) gb.innerHTML+=`<div class="flex justify-end"><div class="bg-[#333] px-3 py-1.5 rounded-full flex items-center gap-2 flex-row-reverse max-w-full"><span class="font-semibold truncate">${p} ${agg.B[p]>1?`(x${agg.B[p]})`:''}</span><i data-lucide="football" class="w-3 h-3 text-gray-400 shrink-0"></i></div></div>`;
+            cards.forEach(c=>{ const h=`<div class="flex ${c.team==='A'?'justify-start':'justify-end'}"><div class="bg-[#2A2A2A] px-3 py-1 rounded flex items-center gap-2 border-l-2 ${c.team==='A'?'border-app-highlight':'border-gray-500'} ${c.team==='B'?'flex-row-reverse border-l-0 border-r-2':''} max-w-full"><span class="truncate">${c.player}</span><div class="w-3 h-4 rounded-sm ${c.type==='yellow'?'bg-yellow-500':'bg-red-500'} shrink-0"></div></div></div>`; if(c.team==='A')ca.innerHTML+=h; else cb.innerHTML+=h; });
+            lucide.createIcons();
+        }
+
+        // =======================================================
+        // 1. MÍDIAS DO HEADER (Cabeçalho da página principal)
+        // =======================================================
+        const headerMediaFiles = [
+            { type: 'video', src: 'https://i.imgur.com/7Nxj8VO.mp4'},
+            { type: 'video', src: 'https://i.imgur.com/Gd0l5w1.mp4'},
+            { type: 'image', src: 'https://i.imgur.com/SRgkc5I.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/GAG6Fos.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/jzaZK5J.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/UpwYX3o.jpeg'},
+            { type: 'video', src: 'https://i.imgur.com/UXxvkCa.mp4'},
+            { type: 'video', src: 'https://i.imgur.com/GOVX4Uu.mp4'},
+            { type: 'video', src: 'https://i.imgur.com/egbQejA.mp4'}
+        ];
+
+        // ==========================================
+        // SISTEMA DE GALERIA DE FOTOS E VÍDEOS
+        // ==========================================
+        const galleryMediaFiles = [
+            { type: 'image', src: 'https://i.imgur.com/SRgkc5I.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/GAG6Fos.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/jzaZK5J.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/UpwYX3o.jpeg'}
+        ];
+
+        // =======================================================
+        // 2. MÍDIAS DAS ESTATÍSTICAS (Fundo do placar ao vivo)
+        // =======================================================
+        const arenaMediaFiles = [
+            { type: 'video', src: 'https://i.imgur.com/7Nxj8VO.mp4'},
+            { type: 'video', src: 'https://i.imgur.com/Gd0l5w1.mp4'},
+            { type: 'image', src: 'https://i.imgur.com/SRgkc5I.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/GAG6Fos.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/jzaZK5J.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/UpwYX3o.jpeg'},
+            { type: 'video', src: 'https://i.imgur.com/UXxvkCa.mp4'},
+            { type: 'video', src: 'https://i.imgur.com/GOVX4Uu.mp4'},
+            { type: 'video', src: 'https://i.imgur.com/egbQejA.mp4'}
+        ];
+
+        window.startHeaderCarousel = () => {
+            const bgContainer = document.getElementById('header-media-bg');
+            if(!bgContainer) return;
+            
+            const changeMedia = () => {
+                // Puxa as fotos apenas da lista headerMediaFiles
+                const media = headerMediaFiles[Math.floor(Math.random() * headerMediaFiles.length)];
+                
+                bgContainer.style.opacity = '0'; 
+                setTimeout(() => {
+                    if(media.type === 'image') {
+                        bgContainer.innerHTML = `<img src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" class="opacity-80" />`;
+                    } else {
+                        bgContainer.innerHTML = `<video src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" autoplay loop muted playsinline class="opacity-80"></video>`;
+                    }
+                    bgContainer.style.opacity = '1'; 
+                }, 800); 
+            };
+
+            changeMedia(); 
+            setInterval(changeMedia, 9000);
+        };
+        setTimeout(startHeaderCarousel, 500);
+
+        window.startArenaCarousel = () => {
+            const bgContainer = document.getElementById('modal-arena-bg');
+            if(!bgContainer) return;
+            
+            const changeMedia = () => {
+                // Puxa as fotos apenas da lista arenaMediaFiles
+                const media = arenaMediaFiles[Math.floor(Math.random() * arenaMediaFiles.length)];
+                
+                bgContainer.style.opacity = '0'; 
+                setTimeout(() => {
+                    if(media.type === 'image') {
+                        bgContainer.innerHTML = `<img src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" class="opacity-80" />`;
+                    } else {
+                        bgContainer.innerHTML = `<video src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" autoplay loop muted playsinline class="opacity-80"></video>`;
+                    }
+                    bgContainer.style.opacity = '1'; 
+                }, 500); 
+            };
+
+            changeMedia(); 
+            arenaCarouselInterval = setInterval(changeMedia, 6000);
+        };
+
+        window.openStatsModal = (g) => {
+            currentOpenGameId = g.id;
+            window.updateModalUI(g);
+            document.getElementById('match-stats-modal').classList.remove('hidden');
+            window.startArenaCarousel(); // Inicia o carrossel de mídia
+        }
+        
+        window.closeMatchStats = () => {
+            currentOpenGameId = null;
+            document.getElementById('match-stats-modal').classList.add('hidden');
+            if(arenaCarouselInterval) clearInterval(arenaCarouselInterval); // Para o carrossel quando fecha
+            document.getElementById('modal-arena-bg').innerHTML = ''; // Limpa a memória do vídeo
+        }
+
+        window.renderGallery = () => {
+            const container = document.getElementById('gallery-container');
+            container.innerHTML = '';
+            
+            galleryMediaFiles.forEach((media) => {
+                if(media.type === 'image') {
+                    container.innerHTML += `<div class="break-inside-avoid mb-3 bg-[#252525] rounded-xl overflow-hidden border border-[#333] shadow-md hover:scale-[1.02] transition-transform cursor-pointer" onclick="openFullscreen('${media.src}', 'image')"><img src="${media.src}" class="w-full h-auto block hover:opacity-80 transition-opacity" loading="lazy"></div>`;
+                } else {
+                    // MUDANÇAS AQUI: Adicionado autoplay, preload="auto" e removido onmouseover/onmouseout
+                    container.innerHTML += `<div class="break-inside-avoid mb-3 bg-[#252525] rounded-xl overflow-hidden border border-[#333] shadow-md hover:scale-[1.02] transition-transform cursor-pointer relative" onclick="openFullscreen('${media.src}', 'video')"><video src="${media.src}" class="w-full h-auto block pointer-events-none" muted loop autoplay playsinline preload="auto"></video><div class="absolute top-2 right-2 bg-black/60 p-1.5 rounded-full"><i data-lucide="play" class="w-3 h-3 text-white"></i></div></div>`;
+                }
+            });
+            lucide.createIcons();
+        };
+
+        // CHAME A FUNÇÃO AQUI: Para renderizar uma única vez assim que a página abre!
+        setTimeout(window.renderGallery, 800);
+
+        window.openFullscreen = (src, type) => {
+            const modal = document.getElementById('fullscreen-media-modal');
+            const content = document.getElementById('fullscreen-content');
+            
+            if(type === 'image') {
+                content.innerHTML = `<img src="${src}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">`;
+            } else {
+                content.innerHTML = `<video src="${src}" class="max-w-full max-h-full outline-none rounded-lg shadow-2xl" controls autoplay playsinline></video>`;
+            }
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10); // Animação de fade-in
+        };
+
+        window.closeFullscreen = () => {
+            const modal = document.getElementById('fullscreen-media-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                document.getElementById('fullscreen-content').innerHTML = ''; // Limpa para pausar vídeo
+            }, 300);
+        };
+
+        window.switchSubView=(v)=>{currentSubView=v; document.getElementById('sub-btn-classificacao').className=v==='classificacao'?'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300'; document.getElementById('sub-btn-cartoes').className=v==='cartoes'?'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300'; document.getElementById('sub-btn-suspensoes').className=v==='suspensoes'?'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300'; renderMainList(); }
+        window.switchStatsView=(v)=>{currentStatsView=v;selectedPlayerTeam=null;document.getElementById('stats-btn-artilharia').className=v==='artilharia'?'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-gold text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';document.getElementById('stats-btn-cartoes_geral').className=v==='cartoes_geral'?'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-gold text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';document.getElementById('stats-btn-jogadores').className=v==='jogadores'?'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-gold text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';renderStats();}
+        window.switchView=(v)=>{
+            document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden-view'));
+            document.getElementById(`view-${v}`).classList.remove('hidden-view');
+            
+            document.querySelectorAll('.nav-item').forEach(e=>{ e.classList.remove('text-app-highlight', 'text-app-gold'); e.classList.add('text-gray-500'); });
+            document.getElementById('nav-copa').className='flex items-center justify-center bg-[#2A2A2A] text-gray-500 w-14 h-14 rounded-full -mt-8 border-4 border-app-bg shadow-lg shadow-black/50 transition-all duration-300';
+            
+            if(v==='tabelas') { document.getElementById('nav-tabelas').classList.remove('text-gray-500'); document.getElementById('nav-tabelas').classList.add('text-app-highlight'); }
+            if(v==='jogos') { document.getElementById('nav-jogos').classList.remove('text-gray-500'); document.getElementById('nav-jogos').classList.add('text-app-highlight'); }
+            if(v==='stats') { document.getElementById('nav-stats').classList.remove('text-gray-500'); document.getElementById('nav-stats').classList.add('text-app-gold'); }
+            
+            // NOVO: Adicionando cor e carregando a Galeria (SEM RECARREGAR O CONTEÚDO)
+            if(v==='galeria') { 
+                document.getElementById('nav-galeria').classList.remove('text-gray-500'); 
+                document.getElementById('nav-galeria').classList.add('text-app-highlight'); 
+                // A linha renderGallery(); foi removida daqui!
+            }
+            
+            if(v==='copa'){
+                document.getElementById('nav-copa').className='flex items-center justify-center bg-app-gold text-app-bg w-14 h-14 rounded-full -mt-8 border-4 border-app-bg shadow-lg shadow-black/50 transition-all duration-300';
+                renderCopaMatches();
+            }
+            if(v==='tabelas'||v==='jogos'){window.switchContinent();}
+            if(v==='stats')renderStats();
+        }
+        
+        lucide.createIcons();
+    </script>
+</body>
+</html>

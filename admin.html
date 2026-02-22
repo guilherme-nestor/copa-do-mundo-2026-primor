@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Copa 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #121212; color: #E0E0E0; }
+        .btn-action { @apply transition-all active:scale-95 font-bold flex items-center justify-center gap-2; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slideUp { animation: slideUp 0.3s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden-force { display: none !important; visibility: hidden !important; }
+        .input-label { @apply block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 ml-1; }
+    </style>
+    <script>
+         tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        app: { gold: '#FFD700', highlight: '#00B16A' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-[#121212]">
+
+    <section id="login-screen" class="fixed inset-0 z-[200] bg-[#121212] flex items-center justify-center p-4">
+        <div class="bg-[#1E1E1E] p-8 rounded-2xl shadow-2xl border border-[#333] w-full max-w-sm animate-fadeIn">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-app-gold/10 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-app-gold">
+                    <i data-lucide="lock" class="w-10 h-10 text-app-gold"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-app-gold tracking-widest">ÁREA RESTRITA</h2>
+            </div>
+            <form id="login-form" class="space-y-6">
+                <div class="space-y-2">
+                    <label for="admin-email" class="text-sm font-semibold text-gray-300 uppercase tracking-wider ml-1">Usuário</label>
+                    <input type="email" id="admin-email" class="bg-[#121212] border border-[#333] text-gray-100 text-sm rounded-lg focus:ring-app-gold focus:border-app-gold block w-full p-3 outline-none transition-all" placeholder="admin@copa.com" required>
+                </div>
+                <div class="space-y-2">
+                     <label for="admin-password" class="text-sm font-semibold text-gray-300 uppercase tracking-wider ml-1">Senha</label>
+                    <input type="password" id="admin-password" class="bg-[#121212] border border-[#333] text-gray-100 text-sm rounded-lg focus:ring-app-gold focus:border-app-gold block w-full p-3 outline-none transition-all" placeholder="••••••••" required>
+                </div>
+                <div id="login-error" class="text-red-500 text-sm text-center hidden-force">Usuário ou senha incorretos.</div>
+                <button type="submit" id="btn-login" class="w-full text-[#121212] bg-app-gold hover:bg-yellow-500 font-bold rounded-lg text-sm px-5 py-3.5 text-center transition-all active:scale-95 uppercase tracking-widest shadow-lg flex items-center justify-center gap-2">
+                    <span id="btn-login-text">ENTRAR</span>
+                    <i data-lucide="loader-2" id="btn-login-loader" class="w-5 h-5 animate-spin hidden-force"></i>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <div id="admin-content" class="hidden-force min-h-screen pb-20">
+        <header class="bg-[#1E1E1E] p-4 border-b border-[#333] flex justify-between items-center sticky top-0 z-50 shadow-md">
+            <h1 class="text-xl font-bold text-app-gold flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i> PAINEL ADMIN
+            </h1>
+            <div class="flex items-center gap-4">
+                <div id="firebase-status" class="text-xs text-gray-500 flex items-center gap-2 bg-[#252525] py-1 px-3 rounded-full border border-[#333]">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse" id="status-dot"></div><span id="status-text" class="font-medium">Online</span>
+                </div>
+                <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition-colors" title="Sair"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+            </div>
+        </header>
+        <div id="error-banner" class="hidden-force bg-red-900/50 border-b border-red-500/50 p-4 text-center text-sm text-red-200 animate-fadeIn"><p class="font-bold flex items-center justify-center gap-2"><i data-lucide="alert-triangle" class="w-5 h-5"></i> ERRO DE CONEXÃO</p><p class="mt-1" id="error-details">Verifique as regras do Firestore.</p></div>
+
+        <nav class="bg-[#1E1E1E] py-3 px-4 overflow-x-auto whitespace-nowrap border-b border-[#333] sticky top-[60px] z-40 no-scrollbar">
+            <div class="flex space-x-3" id="admin-tabs">
+                <button onclick="switchAppView('dashboard')" id="tab-dashboard" class="admin-tab px-4 py-2 rounded-full text-sm font-bold transition-all bg-app-highlight/20 text-app-highlight border border-app-highlight flex items-center gap-1"><i data-lucide="trophy" class="w-4 h-4"></i> Jogos da Copa</button>
+                <button onclick="switchAppView('manage')" id="tab-manage" class="admin-tab px-4 py-2 rounded-full text-sm font-medium transition-all bg-[#2A2A2A] text-gray-400 border border-transparent flex items-center gap-1"><i data-lucide="settings" class="w-4 h-4"></i> Gerenciar</button>
+                <button onclick="insertAllGames()" class="admin-tab px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white flex items-center gap-1"><i data-lucide="zap" class="w-4 h-4"></i> IMPORTAR 28 JOGOS</button>
+            </div>
+        </nav>
+
+        <main id="view-dashboard" class="p-4 max-w-3xl mx-auto space-y-8 min-h-[50vh]">
+            <div id="games-loading" class="text-center text-gray-500 py-12 animate-pulse flex flex-col items-center gap-4"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-app-gold"></i><span>Carregando dados...</span></div>
+            <div id="games-container" class="space-y-6 hidden-force"></div>
+        </main>
+
+        <main id="view-manage" class="p-4 max-w-3xl mx-auto space-y-8 hidden-force animate-fadeIn">
+            <section class="bg-[#1E1E1E] p-6 rounded-xl border border-[#333] shadow-lg">
+                <h2 class="text-app-gold font-bold text-lg mb-6 flex items-center gap-2 border-b border-[#333] pb-4"><i data-lucide="users" class="w-5 h-5"></i> 1. Gerenciar Elenco</h2>
+                <div class="space-y-4">
+                    <select id="manage-team-select" class="bg-[#121212] border border-[#333] p-3 rounded-lg text-white w-full focus:border-app-gold outline-none transition-colors" onchange="loadTeamPlayers()"><option value="" disabled selected>Selecione um Time...</option></select>
+                    <div id="add-player-area" class="hidden-force space-y-4 pt-4 border-t border-[#333]">
+                        <h3 class="text-gray-400 font-semibold text-sm uppercase tracking-wider mb-2">Novo Jogador</h3>
+                        <form id="form-add-player" class="space-y-3">
+                            <div class="space-y-1"><label class="input-label">NOME DO JOGADOR</label><input type="text" id="player-name" placeholder="Ex: Vini Jr" class="w-full bg-[#121212] border border-[#333] p-3 rounded-lg text-white focus:border-app-gold outline-none transition-colors" required></div>
+                            <div class="space-y-1"><label class="input-label">NÚMERO DA CAMISA</label><input type="number" id="player-number" placeholder="Ex: 7" class="w-full bg-[#121212] border border-[#333] p-3 rounded-lg text-white focus:border-app-gold outline-none transition-colors" required></div>
+                            <button type="submit" class="btn-action w-full bg-app-gold text-[#121212] py-4 rounded-lg hover:bg-yellow-500 mt-2"><i data-lucide="plus" class="w-5 h-5"></i> ADICIONAR</button>
+                        </form>
+                        <div class="mt-6 pt-4 border-t border-[#333]">
+                             <h3 class="text-gray-400 font-semibold text-sm uppercase tracking-wider mb-4">Elenco Atual</h3>
+                             <div id="team-players-list" class="space-y-2 max-h-80 overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="bg-[#1E1E1E] p-6 rounded-xl border border-[#333] shadow-lg">
+                <h2 class="text-app-highlight font-bold text-lg mb-6 flex items-center gap-2 border-b border-[#333] pb-4"><i data-lucide="calendar-plus" class="w-5 h-5"></i> 2. Agendar Jogo</h2>
+                <form id="form-create-game" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="input-label">TIME MANDANTE</label><select id="game-team-a" class="bg-[#121212] border border-[#333] p-3 rounded-lg text-white w-full focus:border-app-highlight outline-none transition-colors" required><option value="">Selecione...</option></select></div>
+                        <div class="space-y-1"><label class="input-label">TIME VISITANTE</label><select id="game-team-b" class="bg-[#121212] border border-[#333] p-3 rounded-lg text-white w-full focus:border-app-highlight outline-none transition-colors" required><option value="">Selecione...</option></select></div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="input-label">FASE / RODADA</label>
+                        <select id="game-round" class="bg-[#121212] border border-[#333] p-3 rounded-lg text-white w-full focus:border-app-highlight outline-none transition-colors" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            <optgroup label="Mata-Mata (Oficial)">
+                                <option value="Grande Final">🏆 Grande Final</option>
+                                <option value="Disputa de 3º Lugar">🥉 Disputa de 3º Lugar</option>
+                                <option value="Semifinal">Semifinal</option>
+                                <option value="Quartas de Final">Quartas de Final</option>
+                            </optgroup>
+                            <optgroup label="Fase de Grupos">
+                                <option value="Rodada 1">Rodada 1</option>
+                                <option value="Rodada 2">Rodada 2</option>
+                                <option value="Rodada 3">Rodada 3</option>
+                                <option value="Rodada 4">Rodada 4</option>
+                                <option value="Rodada 5">Rodada 5</option>
+                                <option value="Rodada 6">Rodada 6</option>
+                                <option value="Rodada 7">Rodada 7</option>
+                                <option value="Rodada 8">Rodada 8</option>
+                                <option value="Rodada 9">Rodada 9</option>
+                                <option value="Rodada 10">Rodada 10</option>
+                                <option value="Rodada 11">Rodada 11</option>
+                                <option value="Rodada 12">Rodada 12</option>
+                                <option value="Rodada 13">Rodada 13</option>
+                                <option value="Rodada 14">Rodada 14</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="space-y-4">
+                         <div class="space-y-1"><label class="input-label">DATA DO JOGO</label><input type="date" id="game-date-input" class="bg-[#121212] border border-[#333] p-3 rounded-lg text-white w-full focus:border-app-highlight outline-none transition-colors" required></div>
+                         <div class="space-y-1"><label class="input-label">HORÁRIO</label><input type="time" id="game-time-input" class="bg-[#121212] border border-[#333] p-3 rounded-lg text-white w-full focus:border-app-highlight outline-none transition-colors" required></div>
+                    </div>
+                    <div class="space-y-1"><label class="input-label">LOCAL DA PARTIDA</label><input type="text" id="game-local" placeholder="Ex: Arena Principal" class="bg-[#121212] border border-[#333] p-3 rounded-lg text-white w-full focus:border-app-highlight outline-none transition-colors"></div>
+                    <button type="submit" class="btn-action w-full py-4 bg-app-highlight text-[#121212] rounded-lg hover:bg-green-600 shadow-md mt-6"><i data-lucide="check-circle-2" class="w-5 h-5"></i> CRIAR JOGO</button>
+                </form>
+            </section>
+        </main>
+
+        <div id="match-editor" class="fixed inset-0 bg-[#121212] z-[100] hidden-force flex flex-col overflow-y-auto">
+            <div class="bg-[#1E1E1E] p-4 border-b border-[#333] flex items-center justify-between sticky top-0 z-10">
+                <button onclick="closeMatchEditor()" class="text-gray-400 flex items-center gap-1 hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-5 h-5"></i> Voltar</button>
+                <div class="flex items-center gap-3"><span id="editor-saving-indicator" class="text-xs text-app-gold hidden animate-pulse flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Salvando</span><button onclick="toggleGameSettings()" class="bg-[#2A2A2A] p-2 rounded-lg text-gray-400 hover:text-white transition-colors"><i data-lucide="settings" class="w-5 h-5"></i></button></div>
+            </div>
+            <div id="editor-loading" class="hidden-force flex flex-col items-center justify-center py-20 space-y-4"><i data-lucide="loader-2" class="w-10 h-10 animate-spin text-app-gold"></i><span class="text-gray-400">Carregando...</span></div>
+            <div id="editor-error-msg" class="hidden-force bg-red-900/80 p-4 text-center text-red-200 font-bold sticky top-[70px] z-20 mx-4 rounded-xl text-sm"></div>
+
+            <div id="editor-content-area" class="p-4 max-w-lg mx-auto w-full flex-1 hidden-force">
+                <div id="game-settings-area" class="hidden-force bg-[#252525] p-4 rounded-xl mb-6 border border-[#333] animate-fadeIn space-y-4">
+                    <h3 class="text-gray-300 font-bold flex items-center gap-2 mb-2"><i data-lucide="settings" class="w-4 h-4"></i> Configurações da Partida</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="input-label">TIME A</label><select id="edit-game-team-a" class="bg-[#121212] border border-[#333] p-2 rounded-lg text-white w-full text-sm truncate"></select></div>
+                        <div class="space-y-1"><label class="input-label">TIME B</label><select id="edit-game-team-b" class="bg-[#121212] border border-[#333] p-2 rounded-lg text-white w-full text-sm truncate"></select></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="input-label">DATA</label><input type="date" id="edit-game-date" class="bg-[#121212] border border-[#333] p-2 rounded-lg text-white w-full text-sm"></div>
+                        <div class="space-y-1"><label class="input-label">HORA</label><input type="time" id="edit-game-time" class="bg-[#121212] border border-[#333] p-2 rounded-lg text-white w-full text-sm"></div>
+                    </div>
+                    <div class="space-y-1"><label class="input-label">LOCAL</label><input type="text" id="edit-game-local" class="bg-[#121212] border border-[#333] p-2 rounded-lg text-white w-full text-sm"></div>
+                    <button onclick="saveGameSettings()" class="btn-action w-full bg-app-highlight text-[#121212] py-3 rounded-lg hover:bg-green-600 text-sm">SALVAR ALTERAÇÕES</button>
+                    <button onclick="deleteCurrentGame()" class="btn-action w-full bg-red-900/30 text-red-500 py-3 rounded-lg hover:bg-red-900/50 border border-red-900/50 text-sm mt-4"><i data-lucide="trash-2" class="w-4 h-4"></i> EXCLUIR ESTE JOGO</button>
+                </div>
+                <div class="bg-[#1E1E1E] p-4 rounded-xl mb-6 border border-[#333] text-center shadow-lg">
+                    <span id="game-status-badge" class="inline-block px-3 py-1 rounded-full bg-gray-500/20 text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">...</span>
+                    <div class="grid grid-cols-3 gap-2"><button onclick="updateGameStatus('future')" class="btn-action py-3 bg-gray-600/20 text-gray-400 rounded-lg hover:bg-gray-600/30 border border-gray-600/30"><i data-lucide="rotate-ccw" class="w-5 h-5"></i> NÃO INIC.</button><button onclick="updateGameStatus('live')" class="btn-action py-3 bg-green-600/20 text-green-500 rounded-lg hover:bg-green-600/30 border border-green-600/30"><i data-lucide="play" class="w-5 h-5"></i> INICIAR</button><button onclick="updateGameStatus('ended')" class="btn-action py-3 bg-red-600/20 text-red-500 rounded-lg hover:bg-red-600/30 border border-red-600/30"><i data-lucide="square" class="w-5 h-5"></i> ENCERRAR</button></div>
+                </div>
+                <div class="flex items-stretch justify-between gap-3 sm:gap-6 mb-8">
+                    <div class="flex-1 flex flex-col bg-[#1E1E1E] p-3 sm:p-4 rounded-xl border-t-4 border-[#333] transition-colors duration-300" id="editor-team-a-container">
+                        <div class="text-center mb-4"><span class="text-4xl mb-2 block" id="editor-flag-a"></span><span class="font-bold text-center truncate w-full block" id="editor-name-a"></span><div class="text-6xl font-bold my-2 transition-all" id="score-a">0</div></div>
+                        <div class="space-y-2 mt-auto"><button onclick="openPlayerSelect('A', 'goal')" class="btn-action w-full py-3 bg-[#2A2A2A] hover:bg-[#333] text-gray-200 rounded-lg text-base shadow-md transition-colors border border-[#333]" id="btn-goal-a"><i data-lucide="plus" class="w-5 h-5"></i> GOL</button><div class="grid grid-cols-2 gap-2"><button onclick="openPlayerSelect('A', 'yellow_card')" class="btn-action py-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CA</button><button onclick="openPlayerSelect('A', 'red_card')" class="btn-action py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CV</button></div></div>
+                    </div>
+                     <div class="flex-1 flex flex-col bg-[#1E1E1E] p-3 sm:p-4 rounded-xl border-t-4 border-[#333] transition-colors duration-300" id="editor-team-b-container">
+                        <div class="text-center mb-4"><span class="text-4xl mb-2 block" id="editor-flag-b"></span><span class="font-bold text-center truncate w-full block" id="editor-name-b"></span><div class="text-6xl font-bold my-2 transition-all" id="score-b">0</div></div>
+                        <div class="space-y-2 mt-auto"><button onclick="openPlayerSelect('B', 'goal')" class="btn-action w-full py-3 bg-[#2A2A2A] hover:bg-[#333] text-gray-200 rounded-lg text-base shadow-md transition-colors border border-[#333]" id="btn-goal-b"><i data-lucide="plus" class="w-5 h-5"></i> GOL</button><div class="grid grid-cols-2 gap-2"><button onclick="openPlayerSelect('B', 'yellow_card')" class="btn-action py-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CA</button><button onclick="openPlayerSelect('B', 'red_card')" class="btn-action py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CV</button></div></div>
+                    </div>
+                </div>
+                <h3 class="text-gray-400 font-bold uppercase tracking-wider mb-3 text-xs pl-1">Linha do Tempo</h3><div id="event-log" class="space-y-2 pb-6"></div>
+            </div>
+        </div>
+
+        <div id="player-select-modal" class="fixed inset-0 bg-black/80 z-[110] hidden-force flex items-end sm:items-center justify-center">
+            <div class="bg-[#1E1E1E] w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] flex flex-col overflow-hidden animate-slideUp">
+                <div class="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]"><h3 id="modal-action-title" class="font-bold text-gray-200">...</h3><button onclick="closePlayerSelect()" class="text-gray-400 p-2 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+                <div class="p-2 overflow-y-auto flex-1" id="players-list"></div>
+                <div id="own-goal-option" class="p-4 border-t border-[#333] hidden-force bg-[#1a1a1a]"><button onclick="confirmGameAction('own_goal', 'Gol Contra')" class="btn-action w-full py-3.5 bg-[#333] text-gray-300 rounded-xl border border-[#444] hover:bg-[#444] transition-colors text-sm sm:text-base">REGISTRAR GOL CONTRA</button></div>
+            </div>
+        </div>
+
+        <div id="player-edit-modal" class="fixed inset-0 bg-black/80 z-[120] hidden-force flex items-center justify-center p-4">
+            <div class="bg-[#1E1E1E] w-full max-w-sm rounded-2xl shadow-2xl border border-[#333] animate-fadeIn overflow-hidden">
+                <div class="bg-[#252525] p-4 flex justify-between items-center border-b border-[#333]"><h3 class="text-app-gold font-bold flex items-center gap-2"><i data-lucide="user-cog" class="w-5 h-5"></i> Editar Jogador</h3><button onclick="closeEditPlayerModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+                <div class="p-6 space-y-6">
+                    <form id="form-edit-player-modal" class="space-y-4">
+                        <input type="hidden" id="edit-player-id"><input type="hidden" id="edit-player-team-id">
+                        <div class="space-y-1"><label class="input-label">NOME</label><input type="text" id="edit-player-name" class="w-full bg-[#121212] border border-[#333] p-3 rounded-lg text-white focus:border-app-gold outline-none" required></div>
+                        <div class="space-y-1"><label class="input-label">NÚMERO</label><input type="number" id="edit-player-number" class="w-full bg-[#121212] border border-[#333] p-3 rounded-lg text-white focus:border-app-gold outline-none" required></div>
+                        <button type="submit" class="btn-action w-full bg-app-gold text-[#121212] py-3 rounded-lg hover:bg-yellow-500">SALVAR DADOS</button>
+                    </form>
+                    <div class="pt-4 border-t border-[#333] space-y-3">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ações Rápidas</h4>
+                        <button onclick="resetPlayerCards()" class="btn-action w-full bg-yellow-500/10 text-yellow-500 py-3 rounded-lg hover:bg-yellow-500/20 border border-yellow-500/30"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> ZERAR CARTÕES</button>
+                        <button id="btn-toggle-suspension" onclick="togglePlayerSuspensionFromModal()" class="btn-action w-full bg-[#2A2A2A] text-gray-300 py-3 rounded-lg hover:bg-[#333] border border-[#444]">SUSPENDER / LIBERAR</button>
+                        <button onclick="deletePlayerFromModal()" class="btn-action w-full bg-red-900/20 text-red-500 py-3 rounded-lg hover:bg-red-900/40 border border-red-900/50 mt-4"><i data-lucide="trash-2" class="w-4 h-4"></i> EXCLUIR JOGADOR</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, addDoc, deleteDoc, updateDoc, onSnapshot, query, where, orderBy, arrayUnion, arrayRemove, increment, serverTimestamp, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const firebaseConfig={apiKey:"AIzaSyDWm4SWhc4P9PoRrbPe3wmz69DtsDMhoeQ",authDomain:"copa-do-mundo-2027-primor.firebaseapp.com",projectId:"copa-do-mundo-2027-primor",storageBucket:"copa-do-mundo-2027-primor.firebasestorage.app",messagingSenderId:"324842540001",appId:"1:324842540001:web:372dafc2b824ceabd9a0a0",measurementId:"G-JDY3S9T6DM"};
+        const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+        
+        const PREDEFINED_TEAMS = {
+            "TBD": { name: "A Definir", flag: "❓", group: "copa" },
+            "Costa do Marfim": { name: "Costa do Marfim", flag: "🇨🇮", group: "A" },
+            "Egito": { name: "Egito", flag: "🇪🇬", group: "A" },
+            "Qatar": { name: "Qatar", flag: "🇶🇦", group: "A" },
+            "Irã": { name: "Irã", flag: "🇮🇷", group: "A" },
+            "Coreia do Sul": { name: "Coreia do Sul", flag: "🇰🇷", group: "B" },
+            "Haiti": { name: "Haiti", flag: "🇭🇹", group: "B" },
+            "África do Sul": { name: "África do Sul", flag: "🇿🇦", group: "B" },
+            "Cabo Verde": { name: "Cabo Verde", flag: "🇨🇻", group: "B" }
+        };
+
+        onAuthStateChanged(auth,(u)=>{if(u && u.email){document.getElementById('login-screen').classList.add('hidden-force');document.getElementById('admin-content').classList.remove('hidden-force');setupListeners();populateTeamSelects();}else{document.getElementById('login-screen').classList.remove('hidden-force');document.getElementById('admin-content').classList.add('hidden-force');}});
+        document.getElementById('login-form').onsubmit=async(e)=>{e.preventDefault();const m=document.getElementById('admin-email').value,p=document.getElementById('admin-password').value;document.getElementById('login-error').classList.add('hidden-force');document.getElementById('btn-login-loader').classList.remove('hidden-force');try{await signInWithEmailAndPassword(auth,m,p);}catch(e){document.getElementById('login-error').classList.remove('hidden-force');}finally{document.getElementById('btn-login-loader').classList.add('hidden-force');}};
+        window.logout=()=>signOut(auth);
+
+        function populateTeamSelects(){
+            let o='<option value="TBD">❓ A DEFINIR (TBD)</option>', c={};
+            for(let t in PREDEFINED_TEAMS){
+                if(t==='TBD') continue;
+                let x=PREDEFINED_TEAMS[t];
+                if(!c[x.group]) c[x.group]=[];
+                c[x.group].push(x);
+            }
+            for(let k in c){
+                o+=`<optgroup label="GRUPO ${k.toUpperCase()}">`;
+                c[k].forEach(t=>o+=`<option value="${t.name}">${t.flag} ${t.name}</option>`);
+                o+='</optgroup>';
+            }
+            document.getElementById('manage-team-select').innerHTML='<option value="" disabled selected>Selecione um Time...</option>'+o;
+            document.getElementById('game-team-a').innerHTML='<option value="">Selecione...</option>'+o;
+            document.getElementById('game-team-b').innerHTML='<option value="">Selecione...</option>'+o;
+            document.getElementById('edit-game-team-a').innerHTML=o;
+            document.getElementById('edit-game-team-b').innerHTML=o;
+        }
+
+        let allGames=[],editingGameId=null,currentGameData=null,currentAction={},unsubPlayers=null,currentPlayerEditData=null;
+        
+        function setupListeners(){onSnapshot(collection(db,'games'),(s)=>{allGames=[];s.forEach(d=>allGames.push({id:d.id,...d.data()}));allGames.sort((a,b)=>{const p=d=>{if(!d)return 0;const x=d.split(/[\/\s:]/);return new Date(2026,x[1]-1,x[0],x[2]||0,x[3]||0).getTime();};return p(a.date)-p(b.date);});document.getElementById('games-loading').classList.add('hidden-force');document.getElementById('games-container').classList.remove('hidden-force');if(!document.getElementById('view-dashboard').classList.contains('hidden-force'))renderDashboard();},(e)=>{if(e.code==='permission-denied')document.getElementById('error-banner').classList.remove('hidden-force');});}
+
+        window.switchAppView=(v)=>{
+            document.getElementById('view-dashboard').classList.add('hidden-force');
+            document.getElementById('view-manage').classList.add('hidden-force');
+            document.querySelectorAll('.admin-tab').forEach(e=>{e.className="admin-tab px-4 py-2 rounded-full text-sm font-medium transition-all bg-[#2A2A2A] text-gray-400 border border-transparent flex items-center gap-1";e.removeAttribute('style');});
+            if(v==='dashboard'){
+                document.getElementById('view-dashboard').classList.remove('hidden-force');
+                const b=document.getElementById(`tab-dashboard`);
+                b.className=`admin-tab active px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-1`;
+                b.style.backgroundColor=`#00B16A33`;
+                b.style.color=`#00B16A`;
+                b.style.borderColor=`#00B16A`;
+                b.style.borderWidth='1px';
+                renderDashboard();
+            }else{
+                document.getElementById('view-manage').classList.remove('hidden-force');
+                document.getElementById('tab-manage').className=`admin-tab active px-4 py-2 rounded-full text-sm font-bold transition-all bg-app-gold/20 text-app-gold border border-app-gold flex items-center gap-1`;
+            }
+            lucide.createIcons();
+        }
+
+        function renderDashboard(){
+            const c=document.getElementById('games-container');
+            c.innerHTML='';
+            const g=allGames;
+            if(!g.length){c.innerHTML=`<div class="text-center text-gray-500 py-12 bg-[#1E1E1E] rounded-xl border border-[#333]">Nenhum jogo cadastrado.</div>`;return;}
+            g.filter(x=>x.status==='live').forEach(x=>renderGame(x,c,true));
+            g.filter(x=>x.status==='future').forEach(x=>renderGame(x,c));
+            g.filter(x=>x.status==='ended').forEach(x=>renderGame(x,c,false,true));
+            lucide.createIcons();
+        }
+
+        window.getShortName=(n)=>{const a={'Brasil':'BRA','Argentina':'ARG','Uruguai':'URU','Colômbia':'COL','Chile':'CHI','EUA':'EUA','México':'MEX','França':'FRA','Alemanha':'ALE','Itália':'ITA','Espanha':'ESP','Inglaterra':'ING','Portugal':'POR','Holanda':'HOL','Bélgica':'BEL','Croácia':'CRO','Senegal':'SEN','Marrocos':'MAR','Nigéria':'NGA','Egito':'EGY','Camarões':'CMR','Gana':'GAN','Japão':'JPN','Coreia do Sul':'KOR','Austrália':'AUS','Irã':'IRA','Arábia Saudita':'ARA', 'A Definir': 'TBD', 'Costa do Marfim': 'CIV', 'Qatar': 'QAT', 'Haiti': 'HAI', 'África do Sul': 'RSA', 'Cabo Verde': 'CPV'};return a[n]||n.substring(0,3).toUpperCase();}
+
+        function renderGame(g,c,l=false,p=false){
+            const tA=PREDEFINED_TEAMS[g.teamA]||{name:g.teamA,flag:'?'}, tB=PREDEFINED_TEAMS[g.teamB]||{name:g.teamB,flag:'?'};
+            const cl = '#FFD700'; // Cor dourada padrão da Copa
+            
+            const nameA = `<span class="font-bold truncate md:hidden">${window.getShortName(tA.name)}</span><span class="font-bold truncate hidden md:inline">${tA.name}</span>`;
+            const nameB = `<span class="font-bold truncate md:hidden">${window.getShortName(tB.name)}</span><span class="font-bold truncate hidden md:inline">${tB.name}</span>`;
+            
+            c.innerHTML+=`<div onclick="window.openMatchEditor('${g.id}')" class="bg-[#1E1E1E] p-4 rounded-xl border-l-4 ${l?'border-red-500':''} cursor-pointer hover:bg-[#252525] transition-all ${p?'opacity-60':''}" style="${!l?`border-color:${cl}`:''}"><div class="flex justify-between text-[11px] mb-2 font-bold tracking-wider uppercase"><span style="color:${l?'#ef4444':cl}">${g.round||'Rodada'}</span>${l?'<span class="text-red-500 animate-pulse font-bold">AO VIVO</span>':(g.status==='ended'?'<span class="text-gray-500">Encerrado</span>':`<span class="text-gray-400">${g.date}</span>`)}</div><div class="flex items-center justify-between"><div class="flex items-center gap-2 sm:gap-3 flex-1 justify-end">${nameA}<span class="text-xl sm:text-2xl">${tA.flag}</span></div><div class="bg-[#121212] px-3 sm:px-4 py-2 rounded-lg font-mono text-lg sm:text-xl mx-2 ${l?'text-red-500 border border-red-900/30':'text-gray-400'}">${g.status==='future'?'vs':`${Math.max(0, g.scoreA||0)} - ${Math.max(0, g.scoreB||0)}`}</div><div class="flex items-center gap-2 sm:gap-3 flex-1 justify-start"><span class="text-xl sm:text-2xl">${tB.flag}</span>${nameB}</div></div></div>`;
+        }
+
+        window.loadTeamPlayers=()=>{const t=document.getElementById('manage-team-select').value;if(!t)return;document.getElementById('add-player-area').classList.remove('hidden-force');if(unsubPlayers)unsubPlayers();unsubPlayers=onSnapshot(query(collection(db,'teams',t,'players'),orderBy('name')),(s)=>{const l=document.getElementById('team-players-list');l.innerHTML='';if(s.empty)l.innerHTML='<div class="text-gray-500 italic text-sm">Nenhum jogador.</div>';else s.forEach(d=>{const p=d.data(); const pDataEncoded=encodeURIComponent(JSON.stringify({id:d.id,teamId:t,...p}));l.innerHTML+=`<div class="flex items-center justify-between p-3 bg-[#252525] rounded-lg"><div class="flex items-center gap-3"><span class="font-mono text-app-gold/70 w-6 text-right">${p.number}</span><span class="font-semibold ${p.suspended?'text-red-400':''}">${p.name}</span></div><button onclick="openEditPlayerModal('${pDataEncoded}')" class="text-app-gold hover:bg-app-gold/10 p-2 rounded-full"><i data-lucide="pencil" class="w-4 h-4"></i></button></div>`;});lucide.createIcons();});};
+        document.getElementById('form-add-player').onsubmit=async(e)=>{e.preventDefault();const t=document.getElementById('manage-team-select').value,n=document.getElementById('player-name').value.trim(),nu=document.getElementById('player-number').value.trim();if(t&&n&&nu){await setDoc(doc(db,'teams',t,'players',`${t}_${nu}`),{name:n,number:nu,yellowCards:0,redCards:0,suspended:false,goals:0});document.getElementById('player-name').value='';document.getElementById('player-number').value='';document.getElementById('player-name').focus();}};
+        
+        window.openEditPlayerModal=(d)=>{currentPlayerEditData=JSON.parse(decodeURIComponent(d));document.getElementById('edit-player-id').value=currentPlayerEditData.id;document.getElementById('edit-player-team-id').value=currentPlayerEditData.teamId;document.getElementById('edit-player-name').value=currentPlayerEditData.name;document.getElementById('edit-player-number').value=currentPlayerEditData.number;updateSuspensionButtonState(currentPlayerEditData.suspended);document.getElementById('player-edit-modal').classList.remove('hidden-force');lucide.createIcons();};
+        window.closeEditPlayerModal=()=>{document.getElementById('player-edit-modal').classList.add('hidden-force');currentPlayerEditData=null;};
+        function updateSuspensionButtonState(s){const b=document.getElementById('btn-toggle-suspension');if(s){b.innerText='LIBERAR JOGADOR (ESTÁ SUSPENSO)';b.className='btn-action w-full bg-green-500/20 text-green-500 py-3 rounded-lg hover:bg-green-500/30 border border-green-500/30';}else{b.innerText='SUSPENDER JOGADOR';b.className='btn-action w-full bg-red-500/20 text-red-500 py-3 rounded-lg hover:bg-red-500/30 border border-red-500/30';}}
+        document.getElementById('form-edit-player-modal').onsubmit=async(e)=>{e.preventDefault();if(!currentPlayerEditData)return;const n=document.getElementById('edit-player-name').value.trim(),nu=document.getElementById('edit-player-number').value.trim();await updateDoc(doc(db,'teams',currentPlayerEditData.teamId,'players',currentPlayerEditData.id),{name:n,number:nu});closeEditPlayerModal();};
+        window.resetPlayerCards=async()=>{if(!currentPlayerEditData||!confirm('Zerar cartões?'))return;await updateDoc(doc(db,'teams',currentPlayerEditData.teamId,'players',currentPlayerEditData.id),{yellowCards:0,redCards:0});alert('Cartões zerados!');};
+        window.togglePlayerSuspensionFromModal=async()=>{if(!currentPlayerEditData)return;const ns=!currentPlayerEditData.suspended;await updateDoc(doc(db,'teams',currentPlayerEditData.teamId,'players',currentPlayerEditData.id),{suspended:ns});currentPlayerEditData.suspended=ns;updateSuspensionButtonState(ns);};
+        window.deletePlayerFromModal=async()=>{if(!currentPlayerEditData||!confirm('Excluir jogador?'))return;await deleteDoc(doc(db,'teams',currentPlayerEditData.teamId,'players',currentPlayerEditData.id));closeEditPlayerModal();};
+
+        document.getElementById('form-create-game').onsubmit=async(e)=>{
+            e.preventDefault();
+            const a=document.getElementById('game-team-a').value, b=document.getElementById('game-team-b').value, dt=document.getElementById('game-date-input').value, tm=document.getElementById('game-time-input').value;
+            if(a&&b&&dt&&tm){
+                const dObj=new Date(dt+'T'+tm), day=String(dObj.getDate()).padStart(2,'0'), mth=String(dObj.getMonth()+1).padStart(2,'0'), fmtDate=`${day}/${mth} ${tm}`;
+                const gid=`${a}_x_${b}_${Date.now()}`;
+                await setDoc(doc(db,'games',gid),{teamA:a, teamB:b, continent:'copa', round:document.getElementById('game-round').value, date:fmtDate, local:document.getElementById('game-local').value, status:'future', scoreA:0, scoreB:0, events:[], createdAt:serverTimestamp()});
+                alert("Jogo criado!");
+                e.target.reset();
+                window.switchAppView('dashboard');
+            } else alert("Preencha todos os campos.");
+        };
+        
+        let unsubGame=null;
+        window.openMatchEditor=(gid)=>{editingGameId=gid;document.getElementById('match-editor').classList.remove('hidden-force');document.getElementById('editor-content-area').classList.add('hidden-force');document.getElementById('editor-loading').classList.remove('hidden-force');document.getElementById('editor-error-msg').classList.add('hidden-force');document.getElementById('game-settings-area').classList.add('hidden-force');if(unsubGame)unsubGame();unsubGame=onSnapshot(doc(db,'games',gid),(d)=>{document.getElementById('editor-loading').classList.add('hidden-force');if(d.exists()){document.getElementById('editor-content-area').classList.remove('hidden-force');currentGameData={id:d.id,...d.data()};try{updateEditor(currentGameData);}catch(e){document.getElementById('editor-error-msg').innerText="Erro visual: "+e.message;document.getElementById('editor-error-msg').classList.remove('hidden-force');}}else{document.getElementById('editor-error-msg').innerText="Jogo não encontrado.";document.getElementById('editor-error-msg').classList.remove('hidden-force');}},(e)=>{document.getElementById('editor-loading').classList.add('hidden-force');document.getElementById('editor-error-msg').innerText="Erro de conexão.";document.getElementById('editor-error-msg').classList.remove('hidden-force');});};
+        window.closeMatchEditor=()=>{document.getElementById('match-editor').classList.add('hidden-force');if(unsubGame)unsubGame();editingGameId=null;};
+        function safeText(id,t){const el=document.getElementById(id);if(el)el.innerText=t;} function safeStyle(id,p,v){const el=document.getElementById(id);if(el)el.style[p]=v;}
+        
+        function updateEditor(g){
+            const tA=PREDEFINED_TEAMS[g.teamA]||{name:g.teamA||'Time A',flag:'?'}, tB=PREDEFINED_TEAMS[g.teamB]||{name:g.teamB||'Time B',flag:'?'}; 
+            safeText('editor-flag-a',tA.flag);safeText('editor-name-a',tA.name);safeText('score-a',Math.max(0, Number(g.scoreA??0)));
+            safeText('editor-flag-b',tB.flag);safeText('editor-name-b',tB.name);safeText('score-b',Math.max(0, Number(g.scoreB??0)));
+            const cA='#00B16A', cB='#0A84FF';
+            safeStyle('editor-team-a-container','borderColor',cA);safeStyle('btn-goal-a','backgroundColor',cA);safeStyle('btn-goal-a','color','#121212');
+            safeStyle('editor-team-b-container','borderColor',cB);safeStyle('btn-goal-b','backgroundColor',cB);safeStyle('btn-goal-b','color','#121212');
+            const b=document.getElementById('game-status-badge');
+            if(b){if(g.status==='live'){b.innerText='EM ANDAMENTO';b.className='inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-500 text-xs font-bold uppercase tracking-wider mb-4 animate-pulse';}else if(g.status==='future'){b.innerText='NÃO INICIADO';b.className='inline-block px-3 py-1 rounded-full bg-gray-500/20 text-gray-400 text-xs font-bold uppercase tracking-wider mb-4';}else{b.innerText='ENCERRADO';b.className='inline-block px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider mb-4';}}
+            let logHtml='';
+            const evs=Array.isArray(g.events)?g.events:[];
+            if(evs.length===0)logHtml='<div class="text-gray-500 text-center py-4 italic text-sm">Sem eventos.</div>';
+            else{[...evs].reverse().forEach((ev,i)=>{let ic='goal',cl='text-[#00B16A] border-[#00B16A]';if(ev.type==='own_goal'){ic='alert-triangle';cl='text-red-400 border-red-400';}else if(ev.type==='yellow_card'){ic='rectangle-vertical';cl='text-yellow-500 border-yellow-500';}else if(ev.type==='red_card'){ic='rectangle-vertical';cl='text-red-500 border-red-500';}const pName=ev.playerName||ev.player||'Desconhecido',evFlag=ev.teamSide==='A'?tA.flag:tB.flag;logHtml+=`<div class="bg-[#252525] p-3 rounded-lg flex items-center justify-between text-sm border-l-4 ${cl} animate-fadeIn"><span><i data-lucide="${ic}" class="inline w-4 h-4 mr-2 ${cl.split(' ')[0]}"></i>${pName} (${evFlag})</span><button onclick="window.deleteEvent(${evs.length-1-i})" class="text-red-500 p-2 hover:bg-red-500/10 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;});}
+            const logEl=document.getElementById('event-log');if(logEl)logEl.innerHTML=logHtml;lucide.createIcons();
+        }
+
+        window.toggleGameSettings=()=>{const a=document.getElementById('game-settings-area');if(a.classList.contains('hidden-force')){const[d,t]=currentGameData.date.split(' ');const[dd,mm]=d.split('/');document.getElementById('edit-game-date').value=`${new Date().getFullYear()}-${mm}-${dd}`;document.getElementById('edit-game-time').value=t;document.getElementById('edit-game-local').value=currentGameData.local||'';document.getElementById('edit-game-team-a').value=currentGameData.teamA;document.getElementById('edit-game-team-b').value=currentGameData.teamB;a.classList.remove('hidden-force');}else{a.classList.add('hidden-force');}};
+        window.saveGameSettings=async()=>{const dt=document.getElementById('edit-game-date').value,tm=document.getElementById('edit-game-time').value,loc=document.getElementById('edit-game-local').value,tA=document.getElementById('edit-game-team-a').value,tB=document.getElementById('edit-game-team-b').value;if(dt&&tm&&tA&&tB){const dObj=new Date(dt+'T'+tm),day=String(dObj.getDate()).padStart(2,'0'),mth=String(dObj.getMonth()+1).padStart(2,'0'),fmtDate=`${day}/${mth} ${tm}`;await updateDoc(doc(db,'games',editingGameId),{date:fmtDate,local:loc,teamA:tA,teamB:tB});document.getElementById('game-settings-area').classList.add('hidden-force');}};
+        window.deleteCurrentGame=async()=>{if(confirm('TEM CERTEZA? Isso apagará o jogo permanentemente!')) { await deleteDoc(doc(db,'games',editingGameId)); closeMatchEditor(); }};
+        window.updateGameStatus=async(s)=>{if(editingGameId)await updateDoc(doc(db,'games',editingGameId),{status:s});};
+        
+        window.openPlayerSelect=async(s,tp)=>{currentAction={type:tp,teamSide:s};const tid=s==='A'?currentGameData.teamA:currentGameData.teamB;document.getElementById('player-select-modal').classList.remove('hidden-force');document.getElementById('modal-action-title').innerText=`${tp==='goal'?'GOL':(tp==='yellow_card'?'CA':'CV')} - ${PREDEFINED_TEAMS[tid].name.toUpperCase()}`;document.getElementById('own-goal-option').classList.toggle('hidden-force',tp!=='goal');const l=document.getElementById('players-list');l.innerHTML='<div class="text-center py-4"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-app-gold"></i></div>';lucide.createIcons();const sp=await getDocs(collection(db,'teams',tid,'players'));l.innerHTML='';if(sp.empty)l.innerHTML='<div class="text-center text-gray-500 py-4">Sem jogadores. Vá em Gerenciar.</div>';else{const pls=[];sp.forEach(d=>pls.push({id:d.id,...d.data()}));pls.sort((a,b)=>{if(a.suspended&&!b.suspended)return -1;if(!a.suspended&&b.suspended)return 1;return a.name.localeCompare(b.name);});pls.forEach(p=>{l.innerHTML+=`<button onclick="window.confirmGameAction('${p.id}','${p.name}')" class="w-full text-left p-4 hover:bg-[#333] rounded-xl border-b border-[#333] flex gap-3 ${p.suspended?'bg-red-900/20 opacity-70':''}"><span class="font-mono text-app-gold/70">${p.number}</span><span class="font-semibold">${p.name}</span> ${p.suspended?'<span class="text-red-500 text-xs font-bold ml-auto">(SUSPENSO)</span>':''}</button>`;});}};
+        window.confirmGameAction=async(pid,nm)=>{window.closePlayerSelect();const tid=currentAction.teamSide==='A'?currentGameData.teamA:currentGameData.teamB,type=pid==='own_goal'?'own_goal':currentAction.type;const gameUp={events:arrayUnion({type,playerId:pid,playerName:nm,teamSide:currentAction.teamSide,teamId:tid,createdAt:Date.now()})};if(type==='goal'||type==='own_goal')gameUp[currentAction.teamSide==='A'?'scoreA':'scoreB']=increment(1);await updateDoc(doc(db,'games',editingGameId),gameUp);if(pid!=='own_goal'){const pRef=doc(db,'teams',tid,'players',pid);if(type==='goal')await updateDoc(pRef,{goals:increment(1)});if(type==='yellow_card')await updateDoc(pRef,{yellowCards:increment(1)});if(type==='red_card')await updateDoc(pRef,{redCards:increment(1)});}};
+        
+        window.deleteEvent=async(i)=>{
+            const events = currentGameData.events || [];
+            if (!events[i]) return;
+            const ev = events[i];
+            const gameUp = { events: arrayRemove(ev) };
+            if (ev.type === 'goal' || ev.type === 'own_goal') {
+                const currentScore = currentGameData[ev.teamSide === 'A' ? 'scoreA' : 'scoreB'] || 0;
+                if (currentScore > 0) { gameUp[ev.teamSide === 'A' ? 'scoreA' : 'scoreB'] = increment(-1); }
+            }
+            await updateDoc(doc(db, 'games', editingGameId), gameUp);
+            if (ev.playerId && ev.playerId !== 'own_goal') {
+                const pRef = doc(db, 'teams', ev.teamId, 'players', ev.playerId);
+                const pSnap = await getDoc(pRef);
+                if (pSnap.exists()) {
+                    const pData = pSnap.data(); const pUp = {};
+                    if (ev.type === 'goal') pUp.goals = Math.max(0, (pData.goals || 0) - 1);
+                    if (ev.type === 'yellow_card') pUp.yellowCards = Math.max(0, (pData.yellowCards || 0) - 1);
+                    if (ev.type === 'red_card') pUp.redCards = Math.max(0, (pData.redCards || 0) - 1);
+                    if (Object.keys(pUp).length > 0) await updateDoc(pRef, pUp);
+                }
+            }
+        };
+        window.closePlayerSelect=()=>document.getElementById('player-select-modal').classList.add('hidden-force');
+
+        lucide.createIcons();
+        switchAppView('dashboard');
+
+
+        // ====== INÍCIO DO SCRIPT TEMPORÁRIO DE IMPORTAÇÃO ======
+        window.insertAllGames = async () => {
+            if(!confirm("Tem certeza que deseja adicionar os 28 jogos? Clique apenas UMA VEZ e aguarde o aviso de sucesso para não duplicar!")) return;
+            
+            const gamesToInsert = [
+                // 1ª RODADA
+                { round: 'Rodada 1', date: '14/03 16:00', teamA: 'Costa do Marfim', teamB: 'Cabo Verde' },
+                { round: 'Rodada 1', date: '14/03 16:50', teamA: 'Egito', teamB: 'África do Sul' },
+                { round: 'Rodada 1', date: '14/03 17:40', teamA: 'Qatar', teamB: 'Haiti' },
+                { round: 'Rodada 1', date: '14/03 18:30', teamA: 'Irã', teamB: 'Coreia do Sul' },
+
+                // 2ª RODADA
+                { round: 'Rodada 2', date: '19/03 19:15', teamA: 'Costa do Marfim', teamB: 'África do Sul' },
+                { round: 'Rodada 2', date: '19/03 20:05', teamA: 'Haiti', teamB: 'Cabo Verde' },
+                { round: 'Rodada 2', date: '21/03 17:15', teamA: 'Egito', teamB: 'Coreia do Sul' },
+                { round: 'Rodada 2', date: '21/03 18:05', teamA: 'Qatar', teamB: 'Irã' },
+
+                // 3ª RODADA
+                { round: 'Rodada 3', date: '26/03 19:15', teamA: 'Cabo Verde', teamB: 'Irã' },
+                { round: 'Rodada 3', date: '26/03 20:05', teamA: 'Egito', teamB: 'Qatar' },
+                { round: 'Rodada 3', date: '28/03 17:15', teamA: 'Costa do Marfim', teamB: 'Haiti' },
+                { round: 'Rodada 3', date: '28/03 18:05', teamA: 'África do Sul', teamB: 'Coreia do Sul' },
+
+                // 4ª RODADA
+                { round: 'Rodada 4', date: '02/04 19:15', teamA: 'Costa do Marfim', teamB: 'Coreia do Sul' },
+                { round: 'Rodada 4', date: '02/04 20:05', teamA: 'Haiti', teamB: 'Irã' },
+                { round: 'Rodada 4', date: '04/04 17:15', teamA: 'África do Sul', teamB: 'Qatar' },
+                { round: 'Rodada 4', date: '04/04 18:05', teamA: 'Cabo Verde', teamB: 'Egito' },
+
+                // 5ª RODADA
+                { round: 'Rodada 5', date: '09/04 19:15', teamA: 'Cabo Verde', teamB: 'África do Sul' },
+                { round: 'Rodada 5', date: '09/04 20:05', teamA: 'Coreia do Sul', teamB: 'Qatar' },
+                { round: 'Rodada 5', date: '11/04 17:15', teamA: 'Costa do Marfim', teamB: 'Irã' },
+                { round: 'Rodada 5', date: '11/04 18:05', teamA: 'Haiti', teamB: 'Egito' },
+
+                // 6ª RODADA
+                { round: 'Rodada 6', date: '16/04 19:15', teamA: 'Costa do Marfim', teamB: 'Qatar' },
+                { round: 'Rodada 6', date: '16/04 20:05', teamA: 'Irã', teamB: 'Egito' },
+                { round: 'Rodada 6', date: '18/04 17:15', teamA: 'Coreia do Sul', teamB: 'Cabo Verde' },
+                { round: 'Rodada 6', date: '18/04 18:05', teamA: 'Haiti', teamB: 'África do Sul' },
+
+                // 7ª RODADA
+                { round: 'Rodada 7', date: '23/04 19:15', teamA: 'Coreia do Sul', teamB: 'Haiti' },
+                { round: 'Rodada 7', date: '23/04 20:05', teamA: 'Irã', teamB: 'África do Sul' },
+                { round: 'Rodada 7', date: '25/04 17:15', teamA: 'Costa do Marfim', teamB: 'Egito' },
+                { round: 'Rodada 7', date: '25/04 18:05', teamA: 'Qatar', teamB: 'Cabo Verde' }
+            ];
+
+            try {
+                let count = 0;
+                for (const game of gamesToInsert) {
+                    // Gera um ID único e aleatório para cada jogo
+                    const gid = `${game.teamA.substring(0,3)}_x_${game.teamB.substring(0,3)}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+                    
+                    await setDoc(doc(db, 'games', gid), {
+                        teamA: game.teamA,
+                        teamB: game.teamB,
+                        continent: 'copa',
+                        round: game.round,
+                        date: game.date,
+                        local: 'Arena Primor', // Edite se tiver outro nome de campo oficial
+                        status: 'future',
+                        scoreA: 0,
+                        scoreB: 0,
+                        events: [],
+                        createdAt: serverTimestamp()
+                    });
+                    count++;
+                }
+                alert(`SUCESSO! ${count} jogos foram importados. Atualize a página para ver.`);
+            } catch (error) {
+                console.error("Erro ao importar jogos:", error);
+                alert("Ocorreu um erro. Verifique o console do navegador.");
+            }
+        };
+        // ====== FIM DO SCRIPT TEMPORÁRIO ======
+    </script>
+</body>
+</html>
