@@ -21,6 +21,73 @@
         .animate-pulse-red { animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse-red { 0%, 100% { color: #ef4444; } 50% { color: #f87171; } }
         .shadow-gold-glow { box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+        /* --- FUNDO VIVO (AURORAS EM MOVIMENTO) --- */
+        @keyframes auroraShift {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+        body { 
+            /* Luzes com background-size maior para permitir o movimento */
+            background: radial-gradient(circle at 20% 30%, rgba(0, 177, 106, 0.18), transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.15), transparent 50%),
+                        #05070a; 
+            background-size: 150% 150%;
+            background-attachment: fixed;
+            /* A animação faz as luzes viajarem pelo fundo suavemente */
+            animation: auroraShift 15s ease-in-out infinite alternate;
+        }
+        
+        /* --- EFEITO GLASSMORPHISM ULTRA PREMIUM --- */
+        .glass-panel {
+            position: relative; /* Necessário para conter o feixe de luz */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+            backdrop-filter: blur(20px) saturate(160%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.04) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.7), 
+                        inset 0 1px 1px 0 rgba(255, 255, 255, 0.15),
+                        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.3) !important;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            overflow: hidden; /* Mantém a luz a brilhar apenas dentro do vidro */
+        }
+
+        /* O Feixe de Luz invisível à espera na esquerda */
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: skewX(-20deg);
+            transition: 0s; 
+        }
+        
+        /* Hover Magnético */
+        .glass-panel:hover {
+            border-top: 1px solid rgba(255, 215, 0, 0.4) !important;
+            border-left: 1px solid rgba(255, 215, 0, 0.2) !important;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+            box-shadow: 0 15px 50px -10px rgba(0, 0, 0, 0.8), 
+                        0 0 25px rgba(255, 215, 0, 0.12),
+                        inset 0 1px 1px 0 rgba(255, 215, 0, 0.3) !important;
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        /* Quando passa o rato, o feixe de luz viaja à velocidade da luz para a direita */
+        .glass-panel:hover::before {
+            left: 150%;
+            transition: 0.8s ease-in-out;
+        }
+        
+        /* Navegação Inferior Levitando e Brilhando */
+        .glass-nav {
+            background: linear-gradient(to top, rgba(10, 14, 20, 0.95), rgba(10, 14, 20, 0.75)) !important;
+            backdrop-filter: blur(28px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255,255,255,0.1) !important;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -34,6 +101,15 @@
 
     <div id="app-loading" class="fixed inset-0 bg-[#121212] z-[200] flex flex-col items-center justify-center space-y-4 transition-opacity duration-500">
         <i data-lucide="trophy" class="w-16 h-16 text-app-gold animate-bounce"></i><span class="text-app-gold font-bold tracking-widest animate-pulse">CARREGANDO...</span>
+    </div>
+
+    <div id="goal-alert-banner" class="fixed top-0 left-0 w-full z-[300] bg-app-highlight text-[#121212] p-4 shadow-[0_10px_30px_rgba(0,177,106,0.3)] transform -translate-y-full transition-transform duration-500 flex items-center justify-center gap-3 sm:gap-4 border-b-4 border-[#0e6e45]">
+        <i id="alert-icon-1" data-lucide="bell-ring" class="w-8 h-8 animate-bounce shrink-0"></i>
+        <div class="text-center flex-1">
+            <h2 id="alert-title" class="text-xl sm:text-2xl font-black uppercase tracking-widest animate-pulse">ALERTA!</h2>
+            <p id="goal-alert-text" class="text-sm sm:text-base font-medium mt-0.5"></p>
+        </div>
+        <i id="alert-icon-2" data-lucide="bell-ring" class="w-8 h-8 animate-bounce shrink-0"></i>
     </div>
 
     <header id="main-header" class="relative overflow-hidden bg-app-card sticky top-0 z-header border-b border-[#333] flex justify-center items-center shadow-md transition-all duration-500 h-[180px] sm:h-[220px]">
@@ -57,13 +133,14 @@
 
     <main class="p-4 max-w-md mx-auto md:max-w-2xl lg:max-w-4xl">
         <section id="view-tabelas" class="view-section">
+            <div id="upcoming-games-countdown" class="mb-8 hidden flex-col gap-2.5 animate-fadeIn"></div>
             <div class="mb-4 mt-2"><h2 class="text-2xl font-bold text-app-highlight transition-colors duration-300" id="section-title">Fase de Grupos</h2><p class="text-gray-400 text-sm" id="condominio-name">Classificação Geral</p></div>
             <div class="flex p-1 bg-[#2A2A2A] rounded-lg mb-4">
                 <button onclick="switchSubView('classificacao')" id="sub-btn-classificacao" class="flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300">Classificação</button>
                 <button onclick="switchSubView('cartoes')" id="sub-btn-cartoes" class="flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Cartões</button>
                 <button onclick="switchSubView('suspensoes')" id="sub-btn-suspensoes" class="flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Suspensões</button>
             </div>
-            <div class="bg-app-card rounded-xl overflow-hidden shadow-lg border border-[#333]">
+            <div class="glass-panel rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto no-scrollbar"><div class="min-w-[100%]"><div id="table-header" class="grid grid-cols-12 bg-[#2A2A2A] p-3 text-xs font-semibold text-gray-400 uppercase tracking-wider text-center"></div><div id="main-list" class="divide-y divide-[#333]"></div></div></div>
                  <div id="table-footer" class="bg-[#252525] p-3 text-xs text-gray-500 flex items-center justify-center gap-2 sticky left-0"></div>
             </div>
@@ -75,7 +152,7 @@
         </section>
 
         <section id="view-copa" class="view-section hidden-view">
-            <div class="mb-8 mt-2 text-center"><i data-lucide="trophy" class="w-16 h-16 text-app-gold mx-auto mb-2"></i><h2 class="text-3xl font-bold text-app-gold tracking-widest">FASE FINAL</h2><p class="text-app-gold/70 text-sm font-medium uppercase tracking-wider">Mata-Mata</p></div>
+            <div class="mb-8 mt-2 text-center"><i data-lucide="trophy" class="w-16 h-16 text-app-gold mx-auto mb-2"></i><h2 class="text-3xl font-bold text-app-gold text-glow-gold tracking-widest">FASE FINAL</h2><p class="text-app-gold/70 text-sm font-medium uppercase tracking-wider">Mata-Mata</p></div>
             <div class="space-y-8 relative pb-10"><div class="absolute left-1/2 top-4 bottom-4 w-0.5 bg-app-gold/30 shadow-[0_0_8px_rgba(255,215,0,0.3)] -translate-x-1/2 z-0"></div><div id="copa-matches-container" class="space-y-8 relative z-10"></div></div>
         </section>
 
@@ -86,7 +163,7 @@
                 <button onclick="switchStatsView('cartoes_geral')" id="stats-btn-cartoes_geral" class="flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Ranking de Cartões</button>
                 <button onclick="switchStatsView('jogadores')" id="stats-btn-jogadores" class="flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Jogadores</button>
             </div>
-            <div class="bg-app-card rounded-xl overflow-hidden shadow-lg border border-app-gold/30"><div id="stats-table-header" class="grid grid-cols-12 bg-app-gold/10 p-3 text-xs font-semibold text-app-gold uppercase tracking-wider text-center"></div><div id="stats-list" class="divide-y divide-[#333]"></div></div>
+            <div class="glass-panel rounded-2xl overflow-hidden border-app-gold/30"><div id="stats-table-header" class="grid grid-cols-12 bg-app-gold/10 p-3 text-xs font-semibold text-app-gold uppercase tracking-wider text-center"></div><div id="stats-list" class="divide-y divide-[#333]"></div></div>
         </section>
 
         <section id="view-galeria" class="view-section hidden-view">
@@ -111,6 +188,45 @@
             <i data-lucide="x" class="w-6 h-6"></i>
         </button>
         <div id="fullscreen-content" class="w-full h-full flex items-center justify-center relative"></div>
+    </div>
+
+    <div id="live-match-dashboard" class="fixed inset-0 z-[500] hidden bg-[#05070a] flex-col overflow-hidden transition-opacity duration-500 opacity-0">
+        <div id="live-arena-bg" class="absolute inset-0 z-0 transition-opacity duration-700"></div>
+        <div class="absolute inset-0 z-0 bg-gradient-to-b from-black/90 via-black/60 to-[#0a0e14] backdrop-blur-[2px]"></div>
+
+        <div class="relative z-10 flex justify-between items-center p-4 sm:p-6">
+            <button onclick="closeLiveMatch()" class="glass-panel text-white hover:text-app-highlight p-2 rounded-full transition-colors flex items-center justify-center">
+                <i data-lucide="chevron-down" class="w-6 h-6"></i>
+            </button>
+            <div id="live-status-badge" class="flex items-center gap-2 px-4 py-1.5 bg-red-500/20 border border-red-500/50 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-colors duration-500">
+                <span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span></span>
+                <span class="text-red-500 font-bold text-xs uppercase tracking-widest text-glow-red">Tempo Real</span>
+            </div>
+            <div class="w-10"></div>
+        </div>
+
+        <div class="relative z-10 flex flex-col items-center justify-center pt-2 sm:pt-4 pb-6 sm:pb-8 px-2 sm:px-4 flex-shrink-0">
+            <div class="flex items-center justify-center gap-2 sm:gap-12 w-full max-w-3xl">
+                <div class="flex-1 flex flex-col items-center text-center min-w-0">
+                    <div class="w-16 h-16 sm:w-32 sm:h-32 glass-panel rounded-full flex items-center justify-center text-4xl sm:text-7xl mb-2 sm:mb-4 shadow-[0_0_30px_rgba(255,255,255,0.1)] shrink-0"><span id="live-flagA"></span></div>
+                    <h3 id="live-teamA" class="text-white font-bold text-base sm:text-2xl md:text-3xl drop-shadow-lg truncate w-full"></h3>
+                </div>
+                
+                <div class="flex flex-col items-center justify-center px-2 sm:px-4 shrink-0">
+                    <div class="text-5xl sm:text-7xl md:text-8xl font-black text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)] tracking-tighter whitespace-nowrap" id="live-score">0 - 0</div>
+                </div>
+                
+                <div class="flex-1 flex flex-col items-center text-center min-w-0">
+                    <div class="w-16 h-16 sm:w-32 sm:h-32 glass-panel rounded-full flex items-center justify-center text-4xl sm:text-7xl mb-2 sm:mb-4 shadow-[0_0_30px_rgba(255,255,255,0.1)] shrink-0"><span id="live-flagB"></span></div>
+                    <h3 id="live-teamB" class="text-white font-bold text-base sm:text-2xl md:text-3xl drop-shadow-lg truncate w-full"></h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 flex-1 overflow-y-auto w-full max-w-2xl mx-auto px-6 pb-12 no-scrollbar">
+            <h4 class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-6 flex items-center gap-2 sticky top-0 bg-[#0a0e14]/90 backdrop-blur-md py-3 z-20 rounded-b-xl px-2 border-b border-white/5"><i data-lucide="activity" class="w-4 h-4"></i> Linha do Tempo</h4>
+            <div class="relative border-l-2 border-white/10 ml-4 pl-6 space-y-6" id="live-timeline"></div>
+        </div>
     </div>
 
     <div id="match-stats-modal" class="fixed inset-0 z-[110] hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -147,7 +263,46 @@
         </div>
     </div>
 
-    <nav class="fixed bottom-0 w-full bg-app-card border-t border-[#333] py-2 px-4 flex justify-between items-center text-xs z-50">
+    <div id="player-profile-modal" class="fixed inset-0 z-[200] hidden bg-black/80 backdrop-blur-sm flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="player-profile-card" class="bg-[#1E1E1E] w-full max-w-xs rounded-2xl shadow-2xl border border-[#333] overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="h-20 bg-gradient-to-r from-app-highlight/80 to-[#121212] relative flex justify-center">
+                <button onclick="closePlayerProfile()" class="absolute top-2 right-2 text-white/60 hover:text-white bg-black/40 p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                
+                <div class="absolute -bottom-10 w-20 h-20 bg-[#252525] rounded-full border-4 border-[#1E1E1E] flex items-center justify-center shadow-lg">
+                    <i data-lucide="user" class="w-8 h-8 text-gray-400"></i>
+                    <div id="profile-number" class="absolute -bottom-1 -right-1 bg-app-gold text-[#121212] w-6 h-6 rounded-full flex items-center justify-center font-bold font-mono text-xs border-2 border-[#1E1E1E] shadow-sm">10</div>
+                </div>
+            </div>
+            
+            <div class="pt-12 pb-6 px-5 text-center">
+                <h3 id="profile-name" class="text-lg font-bold text-white mb-0.5 truncate">Nome do Jogador</h3>
+                <div class="flex items-center justify-center gap-1.5 text-gray-400 text-xs mb-5">
+                    <span id="profile-flag" class="text-sm">🇧🇷</span>
+                    <span id="profile-team" class="uppercase tracking-wider font-semibold">Brasil</span>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-[#121212] py-2 px-1 rounded-xl border border-[#333] flex flex-col items-center">
+                        <i data-lucide="goal" class="w-4 h-4 text-app-highlight mb-1"></i>
+                        <span id="profile-goals" class="text-lg font-bold text-white leading-none">0</span>
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">Gols</span>
+                    </div>
+                    <div class="bg-[#121212] py-2 px-1 rounded-xl border border-[#333] flex flex-col items-center">
+                        <i data-lucide="rectangle-vertical" class="w-4 h-4 text-yellow-500 mb-1"></i>
+                        <span id="profile-yellow" class="text-lg font-bold text-white leading-none">0</span>
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">Amarelos</span>
+                    </div>
+                    <div class="bg-[#121212] py-2 px-1 rounded-xl border border-[#333] flex flex-col items-center">
+                        <i data-lucide="rectangle-vertical" class="w-4 h-4 text-red-500 mb-1"></i>
+                        <span id="profile-red" class="text-lg font-bold text-white leading-none">0</span>
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">Vermelhos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full glass-nav py-2 px-4 flex justify-between items-center text-xs z-50">
         <button onclick="switchView('tabelas')" id="nav-tabelas" class="nav-item flex flex-col items-center text-app-highlight gap-1 transition-colors duration-300 w-1/5"><i data-lucide="table-2" class="w-6 h-6"></i><span class="font-semibold">Tabelas</span></button>
         <button onclick="switchView('jogos')" id="nav-jogos" class="nav-item relative flex flex-col items-center text-gray-500 gap-1 w-1/5"><div class="relative"><i data-lucide="calendar" class="w-6 h-6"></i><span id="nav-live-indicator" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-app-card rounded-full hidden animate-pulse"></span></div><span>Jogos</span></button>
         <div class="w-1/5 flex justify-center"><button onclick="switchView('copa')" id="nav-copa" class="flex items-center justify-center bg-[#2A2A2A] text-gray-500 w-14 h-14 rounded-full -mt-8 border-4 border-app-bg shadow-lg shadow-black/50 transition-all duration-300"><i data-lucide="trophy" class="w-7 h-7"></i></button></div>
@@ -181,7 +336,128 @@
         let gamesLoaded=false, playersLoaded=false;
         function checkLoading(){ if(gamesLoaded && playersLoaded) { document.getElementById('app-loading').style.opacity='0'; setTimeout(()=>document.getElementById('app-loading').classList.add('hidden-view'),500); } }
 
-        onSnapshot(collection(db,'games'),(s)=>{ allGames=[]; s.forEach(d=>allGames.push({id:d.id,...d.data()})); allGames.sort((a,b)=>{const p=d=>{if(!d)return 0;const x=d.split(/[\/\s:]/);return new Date(2026,x[1]-1,x[0],x[2]||0,x[3]||0).getTime();};return p(a.date)-p(b.date);}); recalculateAll(); gamesLoaded=true; checkLoading(); });
+        
+        let isFirstLoad = true;
+        let previousGameState = {}; // Agora guarda a quantidade de eventos E o status do jogo
+
+        onSnapshot(collection(db,'games'),(s)=>{
+            let newGames = [];
+            
+            s.forEach(d => {
+                const data = d.data();
+                const id = d.id;
+                newGames.push({id: id, ...data});
+
+                if (!isFirstLoad) {
+                    const oldState = previousGameState[id];
+                    const currentEvents = data.events || [];
+                    const oldEventCount = oldState ? oldState.eventCount : 0;
+                    const oldStatus = oldState ? oldState.status : data.status;
+
+                    // 1. Detecção de mudança de STATUS (Apito Inicial e Final)
+                    if (oldStatus !== data.status) {
+                        if (data.status === 'live') {
+                            window.showMatchAlert({ type: 'match_started' }, data.teamA, data.scoreA, data.teamB, data.scoreB);
+                        } else if (data.status === 'ended') {
+                            window.showMatchAlert({ type: 'match_ended' }, data.teamA, data.scoreA, data.teamB, data.scoreB);
+                        }
+                    } 
+                    // 2. Detecção de EVENTOS (Golos e Cartões) apenas se o jogo estiver rolando
+                    else if (data.status === 'live' && currentEvents.length > oldEventCount) {
+                        const latestEvent = currentEvents[currentEvents.length - 1];
+                        window.showMatchAlert(latestEvent, data.teamA, data.scoreA, data.teamB, data.scoreB);
+                    }
+                }
+                // Guarda o estado atual (eventos e status) para a próxima verificação
+                previousGameState[id] = { eventCount: (data.events || []).length, status: data.status };
+            });
+
+            allGames = newGames;
+            allGames.sort((a,b)=>{const p=d=>{if(!d)return 0;const x=d.split(/[\/\s:]/);return new Date(2026,x[1]-1,x[0],x[2]||0,x[3]||0).getTime();};return p(a.date)-p(b.date);});
+            recalculateAll();
+            gamesLoaded = true;
+            checkLoading();
+
+            if (isFirstLoad) isFirstLoad = false;
+        });
+
+        // ==========================================
+        // FUNÇÃO QUE FAZ A MÁGICA VISUAL E SONORA DO EVENTO
+        // ==========================================
+        window.showMatchAlert = (ev, teamA, scoreA, teamB, scoreB) => {
+            const banner = document.getElementById('goal-alert-banner');
+            const title = document.getElementById('alert-title');
+            const text = document.getElementById('goal-alert-text');
+            const icon1 = document.getElementById('alert-icon-1');
+            const icon2 = document.getElementById('alert-icon-2');
+            if(!banner || !text || !title) return;
+
+            const tA = PREDEFINED_TEAMS[teamA]?.name || teamA;
+            const tB = PREDEFINED_TEAMS[teamB]?.name || teamB;
+            const pName = ev.playerName || 'Jogador';
+            const teamName = PREDEFINED_TEAMS[ev.teamId]?.name || 'Equipe';
+
+            // Variáveis de estilo visual
+            let bgColor = 'bg-app-highlight'; let borderColor = 'border-[#0e6e45]'; let textColor = 'text-[#121212]';
+            let titleText = 'ALERTA!'; let msgText = ''; let iconName = 'bell-ring';
+            
+            // Variável que vai receber o áudio correto de acordo com o evento
+            let soundUrl = ''; 
+
+            if(ev.type === 'goal') {
+                titleText = 'GOOOOOL! ⚽';
+                msgText = `O <strong>${pName}</strong> (${window.getShortName(teamName)}) marcou!`;
+                iconName = 'goal';
+                soundUrl = 'https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'; // Som de Torcida comemorando
+            } else if (ev.type === 'own_goal') {
+                bgColor = 'bg-red-500'; borderColor = 'border-red-700';
+                titleText = 'GOL CONTRA! 🤦‍♂️';
+                msgText = `<strong>${pName}</strong> marcou contra o próprio time.`;
+                iconName = 'alert-triangle';
+                soundUrl = 'https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3'; // Apito curto de advertência
+            } else if (ev.type === 'yellow_card') {
+                bgColor = 'bg-yellow-400'; borderColor = 'border-yellow-600';
+                titleText = 'CARTÃO AMARELO 🟨';
+                msgText = `<strong>${pName}</strong> (${window.getShortName(teamName)}) foi advertido.`;
+                iconName = 'rectangle-vertical';
+                soundUrl = 'https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3'; // Apito curto de advertência
+            } else if (ev.type === 'red_card') {
+                bgColor = 'bg-red-600'; borderColor = 'border-red-800'; textColor = 'text-white';
+                titleText = 'CARTÃO VERMELHO 🟥';
+                msgText = `<strong>${pName}</strong> (${window.getShortName(teamName)}) foi EXPULSO!`;
+                iconName = 'rectangle-vertical';
+                soundUrl = 'https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3'; // Apito curto de advertência
+            } else if (ev.type === 'match_started') {
+                bgColor = 'bg-blue-600'; borderColor = 'border-blue-800'; textColor = 'text-white';
+                titleText = 'BOLA ROLANDO! ⏱️';
+                msgText = `A partida entre <strong>${window.getShortName(tA)}</strong> e <strong>${window.getShortName(tB)}</strong> começou!`;
+                iconName = 'play';
+                soundUrl = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'; // Apito inicial firme
+            } else if (ev.type === 'match_ended') {
+                bgColor = 'bg-[#1E1E1E]'; borderColor = 'border-[#333]'; textColor = 'text-app-gold';
+                titleText = 'FIM DE JOGO! 🏁';
+                msgText = `A partida foi encerrada.`;
+                iconName = 'check-square';
+                soundUrl = 'https://assets.mixkit.co/active_storage/sfx/2868/2868-preview.mp3'; // Apito longo/triplo de encerramento
+            }
+
+            // Aplica os estilos dinamicamente
+            banner.className = `fixed top-0 left-0 w-full z-[300] ${bgColor} ${textColor} p-4 shadow-lg transform -translate-y-full transition-transform duration-500 flex items-center justify-center gap-3 sm:gap-4 border-b-4 ${borderColor}`;
+            title.innerText = titleText;
+            text.innerHTML = `${msgText}<br><span class="text-sm font-mono bg-black/30 px-3 py-1 rounded-full inline-block mt-2 font-bold shadow-inner text-white/90">${window.getShortName(tA)} ${scoreA||0} x ${scoreB||0} ${window.getShortName(tB)}</span>`;
+
+            // Atualiza os ícones do Lucide
+            icon1.setAttribute('data-lucide', iconName);
+            icon2.setAttribute('data-lucide', iconName);
+            lucide.createIcons();
+
+            // Toca o som que foi definido nas regras acima
+            try { new Audio(soundUrl).play().catch(e=>{}); } catch(e) {}
+
+            // Faz a animação de descer e subir o alerta
+            banner.classList.remove('-translate-y-full');
+            setTimeout(() => { banner.classList.add('-translate-y-full'); }, 7000); 
+        };
         onSnapshot(collectionGroup(db,'players'),(s)=>{ allPlayers=[]; teamsWithPlayers.clear(); s.forEach(d=>{ const path=d.ref.path.split('/'); const pid=d.id, tid=path[1]; allPlayers.push({id:pid,teamId:tid,...d.data()}); teamsWithPlayers.add(tid); }); recalculateAll(); playersLoaded=true; checkLoading(); });
         function recalculateAll() {
             groupsData = { 'A': [], 'B': [] };
@@ -205,7 +481,7 @@
                     if(ev.type.includes('card')) cards.push({player:pName, team:ev.teamSide, type:ev.type.replace('_card','')});
                 });
                 
-                const matchData = { id:g.id, type: g.status, stage:g.round, round:g.round, status:g.status, teamA:tA.name, flagA:tA.flag, scoreA:Number(g.scoreA??0), teamB:tB.name, flagB:tB.flag, scoreB:Number(g.scoreB??0), date:g.date, local:g.local, details:{goals,cards} };
+                const matchData = { id:g.id, type: g.status, stage:g.round, round:g.round, status:g.status, teamA:tA.name, flagA:tA.flag, scoreA:Number(g.scoreA??0), teamB:tB.name, flagB:tB.flag, scoreB:Number(g.scoreB??0), date:g.date, local:g.local, events: g.events || [], details:{goals,cards} };
 
                 if(g.round.toLowerCase().includes('final') || g.round.toLowerCase().includes('3º') || g.round.toLowerCase().includes('oitavas') || g.round.toLowerCase().includes('quartas') || g.round.toLowerCase().includes('semi')) {
                     matchData.isFinal = g.round.toLowerCase().includes('final') && !g.round.toLowerCase().includes('semi') && !g.round.toLowerCase().includes('3º');
@@ -242,11 +518,19 @@
                     allSuspensions.push({name:p.name, team:t.name, flag:t.flag, reason:"Suspenso", games_left:1});
                 }
             });
+            window.renderCountdown();
             refreshCurrentView();
 
             if (currentOpenGameId) {
                 const updatedGame = allGroupGames.find(x => x.id === currentOpenGameId) || copaMatchesData.find(x => x.id === currentOpenGameId);
-                if (updatedGame) window.updateModalUI(updatedGame);
+                if (updatedGame) {
+                    // MUDANÇA: Se a tela gigante estiver aberta, continua atualizando ela mesmo que o jogo acabe de encerrar!
+                    if (document.getElementById('live-match-dashboard').classList.contains('flex')) {
+                        window.updateLiveDashboardUI(updatedGame);
+                    } else {
+                        window.updateModalUI(updatedGame);
+                    }
+                }
             }
         }
 
@@ -323,7 +607,7 @@
                 ['A', 'B'].forEach(groupId => {
                     const groupTeams = groupsData[groupId];
                     if(groupTeams.length > 0) {
-                        l.innerHTML += `<div class="col-span-12 bg-[#252525] p-2 text-center text-app-gold font-bold uppercase tracking-widest text-xs border-y border-[#333] mt-2">GRUPO ${groupId}</div>`;
+                        l.innerHTML += `<div class="col-span-12 bg-[#252525] p-2 text-center text-app-gold font-bold uppercase tracking-widest text-xs border-y border-[#333]">GRUPO ${groupId}</div>`;
                         
                         groupTeams.forEach((t, i) => {
                             let rowClass = "border-l-4 hover:bg-[#252525] transition-all duration-300 animate-fadeIn ", posColor = "text-gray-500";
@@ -366,9 +650,10 @@
             else allGroupGames.sort((a,b) => { if(a.type==='live'&&b.type!=='live')return -1; if(b.type==='live'&&a.type!=='live')return 1; return 0; }).forEach(g => {
                 const tA=`<span class="font-bold text-base sm:text-lg truncate md:hidden">${window.getShortName(g.teamA)}</span><span class="font-bold text-base sm:text-lg truncate hidden md:inline">${g.teamA}</span>`, tB=`<span class="font-bold text-base sm:text-lg truncate md:hidden">${window.getShortName(g.teamB)}</span><span class="font-bold text-base sm:text-lg truncate hidden md:inline">${g.teamB}</span>`;
                 window[`game_${g.id}`]=g;
-                 if(g.type==='live') l.innerHTML+=`<div class="bg-app-card p-4 rounded-xl border-l-4 border-red-500 shadow-md animate-fadeIn"><div class="flex justify-between text-xs mb-3 font-bold"><span class="text-red-500 flex items-center gap-1.5"><span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span></span> AO VIVO</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0">${tA}<span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagA}</span></div><div class="px-4 py-2 bg-red-500/10 rounded-lg text-red-500 font-mono font-bold mx-2 text-xl border border-red-500/20 shrink-0">${g.scoreA} - ${g.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagB}</span>${tB}</div></div><div class="text-center text-xs text-gray-500 mt-3 pt-3 border-t border-[#333] mb-3">Local: ${g.local}</div><div class="text-center"><button onclick='openStatsModal(window["game_${g.id}"])' class="text-xs font-bold text-red-500 flex items-center justify-center gap-1 mx-auto hover:bg-red-500/10 py-1.5 px-4 rounded-full transition-colors border border-red-500/30"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> Ver Estatísticas</button></div></div>`;
-                else if(g.type==='future') l.innerHTML+=`<div class="bg-app-card p-4 rounded-xl border-l-4 border-app-highlight shadow-md animate-fadeIn opacity-90"><div class="flex justify-between text-xs text-gray-500 mb-3 font-semibold"><span>${g.round}</span><span>${g.date}</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0">${tA}<span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagA}</span></div><div class="px-4 py-1 bg-[#121212] rounded text-gray-400 font-mono font-bold mx-4 shrink-0">vs</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagB}</span>${tB}</div></div><div class="text-center text-xs text-gray-500 mt-3 pt-3 border-t border-[#333]">Local: ${g.local}</div></div>`;
-                else l.innerHTML+=`<div class="bg-app-card p-4 rounded-xl border-l-4 border-[#333] opacity-80 animate-fadeIn"><div class="flex justify-between text-xs text-gray-500 mb-3 font-semibold"><span>${g.round}</span><span>Encerrado</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0"><span class="text-gray-300">${tA}</span><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagA}</span></div><div class="px-4 py-1 bg-[#121212] rounded text-app-highlight font-mono font-bold mx-4 text-xl tracking-widest shrink-0">${g.scoreA} - ${g.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333] rounded-full flex items-center justify-center text-sm shrink-0">${g.flagB}</span><span class="text-gray-300">${tB}</span></div></div><div class="text-center mt-4 pt-3 border-t border-[#333]"><button onclick='openStatsModal(window["game_${g.id}"])' class="text-xs font-semibold text-app-highlight flex items-center justify-center gap-1 mx-auto hover:bg-[#333] py-1 px-3 rounded-full transition-colors"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> Ver Estatísticas</button></div></div>`;
+                
+                 if(g.type==='live') l.innerHTML+=`<div class="px-4 py-2 bg-red-500/10 rounded-xl text-red-500 font-mono font-bold mx-2 text-xl border border-red-500/30 shrink-0 backdrop-blur-sm"><div class="flex justify-between text-xs mb-3 font-bold"><span class="text-red-500 flex items-center gap-1.5"><span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span></span> AO VIVO</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0">${tA}<span class="w-8 h-8 bg-[#333]/50 rounded-full flex items-center justify-center text-sm shrink-0 border border-white/10">${g.flagA}</span></div><div class="px-4 py-2 bg-red-500/10 rounded-xl text-red-500 font-mono font-bold mx-2 text-xl border border-red-500/30 shrink-0 backdrop-blur-sm">${g.scoreA} - ${g.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333]/50 rounded-full flex items-center justify-center text-sm shrink-0 border border-white/10">${g.flagB}</span>${tB}</div></div><div class="text-center text-xs text-gray-400 mt-3 pt-3 border-t border-white/5 mb-3">Local: ${g.local}</div><div class="text-center"><button onclick='openStatsModal(window["game_${g.id}"])' class="text-xs font-bold text-red-400 flex items-center justify-center gap-1 mx-auto hover:bg-red-500/20 py-1.5 px-4 rounded-full transition-colors border border-red-500/30"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> Ver Estatísticas</button></div></div>`;
+                else if(g.type==='future') l.innerHTML+=`<div class="glass-panel p-4 rounded-2xl border-l-4 border-app-highlight animate-fadeIn"><div class="flex justify-between text-xs text-gray-400 mb-3 font-semibold"><span>${g.round}</span><span class="text-app-highlight">${g.date}</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0">${tA}<span class="w-8 h-8 bg-[#333]/50 rounded-full flex items-center justify-center text-sm shrink-0 border border-white/10">${g.flagA}</span></div><div class="px-4 py-1 bg-black/30 rounded-lg text-gray-400 font-mono font-bold mx-4 shrink-0 border border-white/5 backdrop-blur-sm">vs</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333]/50 rounded-full flex items-center justify-center text-sm shrink-0 border border-white/10">${g.flagB}</span>${tB}</div></div><div class="text-center text-xs text-gray-400 mt-3 pt-3 border-t border-white/5">Local: ${g.local}</div></div>`;
+                else l.innerHTML+=`<div class="glass-panel p-4 rounded-2xl border-l-4 border-gray-600 opacity-70 animate-fadeIn"><div class="flex justify-between text-xs text-gray-400 mb-3 font-semibold"><span>${g.round}</span><span>Encerrado</span></div><div class="flex items-center justify-between"><div class="flex-1 flex items-center justify-end gap-3 text-right min-w-0"><span class="text-gray-300">${tA}</span><span class="w-8 h-8 bg-[#333]/30 rounded-full flex items-center justify-center text-sm shrink-0 border border-white/5 grayscale">${g.flagA}</span></div><div class="px-4 py-1 bg-black/30 rounded-lg text-gray-300 font-mono font-bold mx-4 text-xl tracking-widest shrink-0 border border-white/5">${g.scoreA} - ${g.scoreB}</div><div class="flex-1 flex items-center justify-start gap-3 text-left min-w-0"><span class="w-8 h-8 bg-[#333]/30 rounded-full flex items-center justify-center text-sm shrink-0 border border-white/5 grayscale">${g.flagB}</span><span class="text-gray-300">${tB}</span></div></div><div class="text-center mt-4 pt-3 border-t border-white/5"><button onclick='openStatsModal(window["game_${g.id}"])' class="text-xs font-semibold text-gray-300 flex items-center justify-center gap-1 mx-auto hover:bg-white/10 py-1 px-3 rounded-full transition-colors"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> Ver Estatísticas</button></div></div>`;
             });
             lucide.createIcons();
         }
@@ -394,7 +679,11 @@
                 h.classList.remove('hidden'); h.innerHTML=`<div class="col-span-2">Pos</div><div class="col-span-8 text-left pl-2">Jogador</div><div class="col-span-2 text-right pr-4">Gols</div>`;
                 const scorers=allPlayers.filter(p=>(p.goals||0)>0).sort((a,b)=>b.goals-a.goals);
                 if(!scorers.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum gol marcado.</div>';
-                else scorers.slice(0,20).forEach((p,i)=>{ const t=PREDEFINED_TEAMS[p.teamId]||{flag:'?',name:p.teamId}; list.innerHTML+=`<div class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/5 transition-colors ${i<3?'font-semibold':''} animate-fadeIn"><div class="col-span-2 ${i===0?'text-app-gold text-lg':''}">${i+1}º</div><div class="col-span-8 text-left pl-2 flex flex-col truncate"><span class="text-gray-200 truncate">${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${t.flag}</span> ${t.name}</span></div><div class="col-span-2 font-bold text-app-gold text-right pr-4">${p.goals}</div></div>`; });
+                else scorers.slice(0,20).forEach((p,i)=>{ 
+                    const t=PREDEFINED_TEAMS[p.teamId]||{flag:'?',name:p.teamId}; 
+                    // ADICIONADO AQUI: onclick e classe cursor-pointer
+                    list.innerHTML+=`<div onclick="window.openPlayerProfile('${p.name}', '${p.number||''}', '${t.name}', '${t.flag}', ${p.goals||0}, ${p.yellowCards||0}, ${p.redCards||0})" class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/10 transition-colors ${i<3?'font-semibold':''} animate-fadeIn cursor-pointer"><div class="col-span-2 ${i===0?'text-app-gold text-lg':''}">${i+1}º</div><div class="col-span-8 text-left pl-2 flex flex-col truncate"><span class="text-gray-200 truncate">${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${t.flag}</span> ${t.name}</span></div><div class="col-span-2 font-bold text-app-gold text-right pr-4">${p.goals}</div></div>`; 
+                });
             
             } else if(currentStatsView==='cartoes_geral'){
                 h.classList.remove('hidden'); h.innerHTML=`<div class="col-span-8 text-left pl-4">Seleção</div><div class="col-span-2 text-yellow-500">CA</div><div class="col-span-2 text-red-500">CV</div>`;
@@ -421,7 +710,10 @@
                     h.classList.remove('hidden'); const t=PREDEFINED_TEAMS[selectedPlayerTeam]; h.innerHTML=`<div class="col-span-12 flex items-center gap-3 text-left pl-2"><button onclick="backToTeamList()" class="p-1 -ml-1 text-app-gold hover:bg-app-gold/10 rounded-full"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><span class="text-2xl">${t.flag}</span><span class="text-app-gold">${t.name}</span></div>`;
                     const pls=allPlayers.filter(p=>p.teamId===selectedPlayerTeam).sort((a,b)=>(Number(a.number)||0)-(Number(b.number)||0));
                     if(!pls.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum jogador cadastrado.</div>';
-                    else pls.forEach(p=>{ list.innerHTML+=`<div class="flex items-center p-4 hover:bg-[#252525] transition-colors animate-fadeIn gap-4"><div class="font-mono text-xl text-app-gold/50 w-8 text-center shrink-0">${p.number}</div><div class="font-semibold text-lg truncate">${p.name}</div></div>`; });
+                    else pls.forEach(p=>{ 
+                        // ADICIONADO AQUI: onclick e classe cursor-pointer
+                        list.innerHTML+=`<div onclick="window.openPlayerProfile('${p.name}', '${p.number||''}', '${t.name}', '${t.flag}', ${p.goals||0}, ${p.yellowCards||0}, ${p.redCards||0})" class="flex items-center p-4 hover:bg-[#2A2A2A] transition-colors animate-fadeIn gap-4 cursor-pointer"><div class="font-mono text-xl text-app-gold/50 w-8 text-center shrink-0">${p.number}</div><div class="font-semibold text-lg truncate">${p.name}</div><div class="ml-auto text-xs text-app-gold/50"><i data-lucide="external-link" class="w-4 h-4"></i></div></div>`; 
+                    });
                 }
             }
             lucide.createIcons();
@@ -462,6 +754,159 @@
             for(let p in agg.B) gb.innerHTML+=`<div class="flex justify-end"><div class="bg-[#333] px-3 py-1.5 rounded-full flex items-center gap-2 flex-row-reverse max-w-full"><span class="font-semibold truncate">${p} ${agg.B[p]>1?`(x${agg.B[p]})`:''}</span><i data-lucide="football" class="w-3 h-3 text-gray-400 shrink-0"></i></div></div>`;
             cards.forEach(c=>{ const h=`<div class="flex ${c.team==='A'?'justify-start':'justify-end'}"><div class="bg-[#2A2A2A] px-3 py-1 rounded flex items-center gap-2 border-l-2 ${c.team==='A'?'border-app-highlight':'border-gray-500'} ${c.team==='B'?'flex-row-reverse border-l-0 border-r-2':''} max-w-full"><span class="truncate">${c.player}</span><div class="w-3 h-4 rounded-sm ${c.type==='yellow'?'bg-yellow-500':'bg-red-500'} shrink-0"></div></div></div>`; if(c.team==='A')ca.innerHTML+=h; else cb.innerHTML+=h; });
             lucide.createIcons();
+        }
+
+        // ==========================================
+        // SISTEMA DE PERFIL DO JOGADOR
+        // ==========================================
+        window.openPlayerProfile = (name, number, teamName, flag, goals, yellow, red) => {
+            // Preenche os dados no HTML
+            document.getElementById('profile-name').innerText = name;
+            document.getElementById('profile-number').innerText = number || '-';
+            document.getElementById('profile-team').innerText = teamName;
+            document.getElementById('profile-flag').innerText = flag;
+            document.getElementById('profile-goals').innerText = goals || '0';
+            document.getElementById('profile-yellow').innerText = yellow || '0';
+            document.getElementById('profile-red').innerText = red || '0';
+            
+            const modal = document.getElementById('player-profile-modal');
+            const card = document.getElementById('player-profile-card');
+            
+            // Remove o display:none e aplica a animação
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-95');
+                lucide.createIcons();
+            }, 10);
+        };
+
+        window.closePlayerProfile = () => {
+            const modal = document.getElementById('player-profile-modal');
+            const card = document.getElementById('player-profile-card');
+            
+            // Faz a animação reversa
+            modal.classList.add('opacity-0');
+            card.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300); // Aguarda o tempo do fade-out
+        };
+
+        // ==========================================
+        // SISTEMA DE CONTAGEM REGRESSIVA (PRÓXIMOS JOGOS)
+        // ==========================================
+        let countdownInterval = null;
+
+        window.renderCountdown = () => {
+            const container = document.getElementById('upcoming-games-countdown');
+            if(!container) return;
+
+            // 1. Procura o primeiro jogo que NÃO está encerrado para descobrir qual é a rodada ativa
+            const activeGame = allGames.find(g => g.status !== 'ended');
+            
+            // Se não achar nada (todos os jogos do campeonato acabaram)
+            if (!activeGame) {
+                container.classList.add('hidden'); container.classList.remove('flex');
+                if (countdownInterval) clearInterval(countdownInterval);
+                return;
+            }
+
+            // 2. Descobre o nome da rodada e puxa TODOS os jogos dela
+            const targetRound = activeGame.round;
+            const roundGames = allGames.filter(g => g.round === targetRound);
+            
+            // 3. Renderiza o cabeçalho dinâmico (Ex: "RODADA 1")
+            let html = `
+                <div class="flex items-center justify-between mb-1 pl-1">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="calendar-days" class="w-5 h-5 text-app-highlight"></i>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">${targetRound}</h3>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2.5">
+            `;
+            
+            // 4. Desenha os cards de todos os jogos daquela rodada
+            roundGames.forEach(g => {
+                const tA = PREDEFINED_TEAMS[g.teamA] || {name: g.teamA, flag: '?'};
+                const tB = PREDEFINED_TEAMS[g.teamB] || {name: g.teamB, flag: '?'};
+                
+                // Define a cor da bordinha lateral dependendo do status
+                const borderColor = g.status === 'live' ? 'bg-red-500' : (g.status === 'ended' ? 'bg-gray-600' : 'bg-app-highlight');
+                
+                html += `
+                    <div class="bg-gradient-to-r from-[#1E1E1E] to-[#252525] p-3 rounded-xl border border-[#333] shadow-lg relative overflow-hidden flex items-center justify-between">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 ${borderColor}"></div>
+                        <div class="flex-1 min-w-0 pr-3 border-r border-[#333]">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[10px] ${g.status === 'live' ? 'text-red-500 animate-pulse' : (g.status === 'ended' ? 'text-gray-500' : 'text-app-highlight')} font-bold uppercase tracking-wider">
+                                    ${g.status === 'live' ? 'AO VIVO' : g.date}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm sm:text-base font-bold ${g.status === 'ended' ? 'text-gray-400' : 'text-gray-200'}">
+                                <div class="flex items-center gap-1.5 truncate w-[42%] justify-end"><span class="truncate">${window.getShortName(tA.name)}</span><span class="text-lg ${g.status==='ended'?'grayscale':''}">${tA.flag}</span></div>
+                                <span class="text-gray-600 text-[10px] shrink-0">VS</span>
+                                <div class="flex items-center gap-1.5 truncate w-[42%] justify-start"><span class="text-lg ${g.status==='ended'?'grayscale':''}">${tB.flag}</span><span class="truncate">${window.getShortName(tB.name)}</span></div>
+                            </div>
+                        </div>
+                        <div class="w-22 sm:w-28 shrink-0 flex flex-col items-center justify-center pl-1 sm:pl-2">
+                            ${g.status === 'ended' ? 
+                                `<span class="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Final</span>
+                                 <span class="text-[14px] sm:text-[16px] font-mono font-bold text-gray-400">${g.scoreA} - ${g.scoreB}</span>` :
+                             g.status === 'live' ? 
+                                `<span class="text-[9px] text-red-500 uppercase tracking-widest mb-0.5 animate-pulse">Placar</span>
+                                 <span class="text-[14px] sm:text-[16px] font-mono font-bold text-red-500">${g.scoreA} - ${g.scoreB}</span>` :
+                                `<span class="text-[9px] text-gray-500 uppercase tracking-widest mb-0.5">Faltam</span>
+                                 <span id="timer-${g.id}" class="text-[11px] sm:text-[13px] font-mono font-bold text-app-gold text-center w-full">--:--:--</span>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`; // Fecha a div dos cards
+            container.innerHTML = html;
+            container.classList.remove('hidden'); container.classList.add('flex');
+            lucide.createIcons();
+
+            // 5. Motor do relógio apenas para os jogos 'future'
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            countdownInterval = setInterval(() => {
+                roundGames.forEach(g => {
+                    if (g.status !== 'future') return; // Ignora os encerrados ou ao vivo no relógio
+                    
+                    const el = document.getElementById(`timer-${g.id}`);
+                    if (!el) return;
+                    
+                    const x = g.date.split(/[\/\s:]/);
+                    const gameDate = new Date(2026, x[1]-1, x[0], x[2]||0, x[3]||0).getTime();
+                    const now = new Date().getTime();
+                    const diff = gameDate - now;
+
+                    if (diff <= 0) {
+                        el.innerText = "Em Breve";
+                        el.classList.add('text-green-500', 'animate-pulse');
+                        el.classList.remove('text-app-gold');
+                    } else {
+                        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((diff % (1000 * 60)) / 1000);
+                        
+                        if (d > 0) {
+                            el.innerText = `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
+                        } else {
+                            el.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                        }
+                    }
+                });
+            }, 1000);
         }
 
         // =======================================================
@@ -528,34 +973,140 @@
         };
         setTimeout(startHeaderCarousel, 500);
 
+        // ==========================================
+        // CARROSSEL DO MODAL NORMAL (JOGOS ENCERRADOS)
+        // ==========================================
         window.startArenaCarousel = () => {
             const bgContainer = document.getElementById('modal-arena-bg');
             if(!bgContainer) return;
-            
             const changeMedia = () => {
-                // Puxa as fotos apenas da lista arenaMediaFiles
                 const media = arenaMediaFiles[Math.floor(Math.random() * arenaMediaFiles.length)];
-                
-                bgContainer.style.opacity = '0'; 
+                bgContainer.style.opacity = '0';
                 setTimeout(() => {
-                    if(media.type === 'image') {
-                        bgContainer.innerHTML = `<img src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" class="opacity-80" />`;
-                    } else {
-                        bgContainer.innerHTML = `<video src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" autoplay loop muted playsinline class="opacity-80"></video>`;
-                    }
-                    bgContainer.style.opacity = '1'; 
-                }, 500); 
+                    if(media.type === 'image') bgContainer.innerHTML = `<img src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" class="opacity-30" />`;
+                    else bgContainer.innerHTML = `<video src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" autoplay loop muted playsinline class="opacity-30"></video>`;
+                    bgContainer.style.opacity = '1';
+                }, 500);
             };
-
-            changeMedia(); 
+            changeMedia();
+            if(arenaCarouselInterval) clearInterval(arenaCarouselInterval);
             arenaCarouselInterval = setInterval(changeMedia, 6000);
         };
 
+        let liveArenaCarouselInterval = null;
+
+        // O Motor do Carrossel Exclusivo para o Ao Vivo
+        window.startLiveArenaCarousel = () => {
+            const bgContainer = document.getElementById('live-arena-bg');
+            if(!bgContainer) return;
+            const changeMedia = () => {
+                const media = arenaMediaFiles[Math.floor(Math.random() * arenaMediaFiles.length)];
+                bgContainer.style.opacity = '0';
+                setTimeout(() => {
+                    if(media.type === 'image') bgContainer.innerHTML = `<img src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" class="opacity-50" />`;
+                    else bgContainer.innerHTML = `<video src="${media.src}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;" autoplay loop muted playsinline class="opacity-50"></video>`;
+                    bgContainer.style.opacity = '1';
+                }, 500);
+            };
+            changeMedia();
+            liveArenaCarouselInterval = setInterval(changeMedia, 6000);
+        };
+
+        // Redireciona o Clique do Usuário
         window.openStatsModal = (g) => {
             currentOpenGameId = g.id;
-            window.updateModalUI(g);
-            document.getElementById('match-stats-modal').classList.remove('hidden');
-            window.startArenaCarousel(); // Inicia o carrossel de mídia
+            
+            if (g.status === 'live') {
+                // Abre a Tela Cheia (Match Center) se estiver rolando
+                window.updateLiveDashboardUI(g);
+                const modal = document.getElementById('live-match-dashboard');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => modal.classList.remove('opacity-0'), 10);
+                window.startLiveArenaCarousel();
+            } else {
+                // Abre o Modal normal se for jogo futuro/encerrado
+                window.updateModalUI(g);
+                document.getElementById('match-stats-modal').classList.remove('hidden');
+                window.startArenaCarousel();
+            }
+        }
+        
+        window.closeMatchStats = () => {
+            currentOpenGameId = null;
+            document.getElementById('match-stats-modal').classList.add('hidden');
+            if(arenaCarouselInterval) clearInterval(arenaCarouselInterval);
+            document.getElementById('modal-arena-bg').innerHTML = '';
+        }
+
+        window.closeLiveMatch = () => {
+            currentOpenGameId = null;
+            const modal = document.getElementById('live-match-dashboard');
+            modal.classList.add('opacity-0');
+            if(liveArenaCarouselInterval) clearInterval(liveArenaCarouselInterval);
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.getElementById('live-arena-bg').innerHTML = '';
+            }, 500);
+        }
+
+        // Desenha a Interface do Match Center (Placar e Linha do Tempo)
+        window.updateLiveDashboardUI = (g) => {
+            document.getElementById('live-teamA').innerText = g.teamA; document.getElementById('live-flagA').innerText = g.flagA;
+            document.getElementById('live-teamB').innerText = g.teamB; document.getElementById('live-flagB').innerText = g.flagB;
+            document.getElementById('live-score').innerText = `${g.scoreA} - ${g.scoreB}`;
+
+            // === NOVO CÓDIGO DO STATUS AQUI ===
+            const badge = document.getElementById('live-status-badge');
+            if (badge) {
+                if (g.status === 'live') {
+                    badge.className = 'flex items-center gap-2 px-4 py-1.5 bg-red-500/20 border border-red-500/50 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-colors duration-500';
+                    badge.innerHTML = `<span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span></span><span class="text-red-500 font-bold text-xs uppercase tracking-widest text-glow-red">Tempo Real</span>`;
+                } else if (g.status === 'ended') {
+                    badge.className = 'flex items-center gap-2 px-4 py-1.5 bg-[#1E1E1E]/80 border border-gray-600/50 rounded-full backdrop-blur-md transition-colors duration-500 shadow-none';
+                    badge.innerHTML = `<i data-lucide="check-square" class="w-4 h-4 text-gray-400"></i><span class="text-gray-400 font-bold text-xs uppercase tracking-widest">Encerrado</span>`;
+                }
+            }
+            // ===================================
+
+            const tl = document.getElementById('live-timeline');
+            tl.innerHTML = '';
+            const events = g.events || [];
+
+            if (events.length === 0) {
+                tl.innerHTML = '<div class="text-center text-gray-500 italic mt-8 font-medium">Aguardando eventos da partida...</div>';
+            } else {
+                // Desenha a linha do tempo (do evento mais recente para o mais antigo)
+                [...events].reverse().forEach(ev => {
+                    const pName = ev.playerName || 'Jogador';
+                    const isTeamA = ev.teamSide === 'A';
+                    let icon = 'activity', color = 'text-gray-400', bg = 'bg-[#1E1E1E]', border = 'border-gray-600', title = '';
+
+                    if (ev.type === 'goal') { icon = 'goal'; color = 'text-app-highlight'; bg = 'bg-[#00B16A]/20'; border = 'border-[#00B16A]'; title = 'GOL!'; }
+                    else if (ev.type === 'own_goal') { icon = 'alert-triangle'; color = 'text-red-500'; bg = 'bg-red-500/20'; border = 'border-red-500'; title = 'GOL CONTRA'; }
+                    else if (ev.type === 'yellow_card') { icon = 'rectangle-vertical'; color = 'text-yellow-500'; bg = 'bg-yellow-500/20'; border = 'border-yellow-500'; title = 'CARTÃO AMARELO'; }
+                    else if (ev.type === 'red_card') { icon = 'rectangle-vertical'; color = 'text-red-500'; bg = 'bg-red-500/20'; border = 'border-red-500'; title = 'CARTÃO VERMELHO'; }
+
+                    tl.innerHTML += `
+                        <div class="relative animate-fadeIn">
+                            <div class="absolute -left-[43px] top-4 w-10 h-10 rounded-full border-4 border-[#05070a] ${bg} flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.5)] z-10">
+                                <i data-lucide="${icon}" class="w-4 h-4 ${color}"></i>
+                            </div>
+                            
+                            <div class="glass-panel p-4 rounded-2xl border-l-4 ${border} shadow-lg ml-2">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-bold ${color} text-[10px] sm:text-xs uppercase tracking-wider">${title}</span>
+                                    <span class="text-xl sm:text-2xl drop-shadow-md opacity-90">${isTeamA ? g.flagA : g.flagB}</span>
+                                </div>
+                                <h4 class="font-bold text-white text-sm sm:text-lg drop-shadow-sm">${pName}</h4>
+                                <span class="text-xs text-gray-400 font-medium">${isTeamA ? g.teamA : g.teamB}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            lucide.createIcons();
         }
         
         window.closeMatchStats = () => {
