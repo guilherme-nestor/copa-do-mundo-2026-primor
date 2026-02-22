@@ -2,14 +2,22 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
     <meta name="referrer" content="no-referrer">
     <title>Copa do Mundo 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            /* Trava o tamanho da fonte para o Android não aumentar sozinho */
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            /* Evita aquele fundo azul/cinza quando clica em algum botão no celular */
+            -webkit-tap-highlight-color: transparent;
+        }
         :root { --color-destaque: #00B16A; }
         .hidden-view { display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -87,6 +95,19 @@
             -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
             border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
             box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255,255,255,0.1) !important;
+        }
+        /* Animação Suave de Troca de Abas (Estilo App Nativo) */
+        .view-section {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        .view-section.active-view {
+            display: block;
+            animation: viewFadeSlide 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes viewFadeSlide {
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
     <script>
@@ -450,6 +471,8 @@
             icon1.setAttribute('data-lucide', iconName);
             icon2.setAttribute('data-lucide', iconName);
             lucide.createIcons();
+
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
 
             // Toca o som que foi definido nas regras acima
             try { new Audio(soundUrl).play().catch(e=>{}); } catch(e) {}
@@ -1160,9 +1183,23 @@
         window.switchSubView=(v)=>{currentSubView=v; document.getElementById('sub-btn-classificacao').className=v==='classificacao'?'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300'; document.getElementById('sub-btn-cartoes').className=v==='cartoes'?'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300'; document.getElementById('sub-btn-suspensoes').className=v==='suspensoes'?'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-xs font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300'; renderMainList(); }
         window.switchStatsView=(v)=>{currentStatsView=v;selectedPlayerTeam=null;document.getElementById('stats-btn-artilharia').className=v==='artilharia'?'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-gold text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';document.getElementById('stats-btn-cartoes_geral').className=v==='cartoes_geral'?'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-gold text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';document.getElementById('stats-btn-jogadores').className=v==='jogadores'?'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-gold text-app-bg transition-all duration-300':'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';renderStats();}
         window.switchView=(v)=>{
-            document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden-view'));
-            document.getElementById(`view-${v}`).classList.remove('hidden-view');
+            // 1. Resposta Tátil (Faz o celular dar um "soquinho" ao trocar de aba)
+            if (navigator.vibrate) { navigator.vibrate(40); }
+
+            // 2. Animação de Transição (Oculta todas e mostra a nova com fade)
+            document.querySelectorAll('.view-section').forEach(e => {
+                e.classList.remove('active-view');
+                // Remove o hidden-view antigo caso ainda esteja lá
+                e.classList.add('hidden-view'); 
+            });
             
+            const newView = document.getElementById(`view-${v}`);
+            newView.classList.remove('hidden-view');
+            // Força o navegador a reiniciar a animação removendo e adicionando a classe
+            void newView.offsetWidth; 
+            newView.classList.add('active-view');
+            
+            // 3. Atualiza as cores dos botões do menu
             document.querySelectorAll('.nav-item').forEach(e=>{ e.classList.remove('text-app-highlight', 'text-app-gold'); e.classList.add('text-gray-500'); });
             document.getElementById('nav-copa').className='flex items-center justify-center bg-[#2A2A2A] text-gray-500 w-14 h-14 rounded-full -mt-8 border-4 border-app-bg shadow-lg shadow-black/50 transition-all duration-300';
             
@@ -1170,11 +1207,9 @@
             if(v==='jogos') { document.getElementById('nav-jogos').classList.remove('text-gray-500'); document.getElementById('nav-jogos').classList.add('text-app-highlight'); }
             if(v==='stats') { document.getElementById('nav-stats').classList.remove('text-gray-500'); document.getElementById('nav-stats').classList.add('text-app-gold'); }
             
-            // NOVO: Adicionando cor e carregando a Galeria (SEM RECARREGAR O CONTEÚDO)
             if(v==='galeria') { 
                 document.getElementById('nav-galeria').classList.remove('text-gray-500'); 
                 document.getElementById('nav-galeria').classList.add('text-app-highlight'); 
-                // A linha renderGallery(); foi removida daqui!
             }
             
             if(v==='copa'){
@@ -1183,7 +1218,12 @@
             }
             if(v==='tabelas'||v==='jogos'){window.switchContinent();}
             if(v==='stats')renderStats();
+            
+            // Recria os ícones caso algum novo tenha surgido na animação
+            lucide.createIcons();
         }
+
+        window.switchView('tabelas');
         
         lucide.createIcons();
     </script>
