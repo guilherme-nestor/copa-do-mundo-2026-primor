@@ -222,9 +222,150 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, addDoc, deleteDoc, updateDoc, onSnapshot, query, where, orderBy, arrayUnion, arrayRemove, increment, serverTimestamp, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, addDoc, deleteDoc, updateDoc, onSnapshot, query, where, orderBy, arrayUnion, arrayRemove, increment, serverTimestamp, setDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         const firebaseConfig={apiKey:"AIzaSyDWm4SWhc4P9PoRrbPe3wmz69DtsDMhoeQ",authDomain:"copa-do-mundo-2027-primor.firebaseapp.com",projectId:"copa-do-mundo-2027-primor",storageBucket:"copa-do-mundo-2027-primor.firebasestorage.app",messagingSenderId:"324842540001",appId:"1:324842540001:web:372dafc2b824ceabd9a0a0",measurementId:"G-JDY3S9T6DM"};
         const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+
+        window.resetAndPopulateGames = async () => {
+            if (!confirm("TEM CERTEZA ABSOLUTA? Isso apagará TODOS os jogos atuais e recriará a tabela do zero!")) return;
+
+            const btn = document.getElementById('btn-reset-games');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> PROCESSANDO...';
+            btn.disabled = true;
+
+            try {
+                const gamesRef = collection(db, 'games');
+                const batch = writeBatch(db);
+
+                // 1. APAGAR TODOS OS JOGOS EXISTENTES
+                const snapshot = await getDocs(gamesRef);
+                snapshot.forEach((gameDoc) => {
+                    batch.delete(gameDoc.ref);
+                });
+
+                // 2. DEFINIÇÃO DA TABELA (COM QATAR E INTERVALO DE 1 HORA)
+                const newGames = [
+                    // --- TURNO (IDA) ---
+                    { round: "Rodada 1", date: "14/03 16:00", teamA: "Costa do Marfim", teamB: "Cabo Verde" },
+                    { round: "Rodada 1", date: "14/03 17:00", teamA: "Egito", teamB: "África do Sul" },
+                    { round: "Rodada 1", date: "14/03 18:00", teamA: "Qatar", teamB: "Haiti" },
+                    { round: "Rodada 1", date: "14/03 19:00", teamA: "Irã", teamB: "Coreia do Sul" },
+                    
+                    { round: "Rodada 2", date: "26/03 19:30", teamA: "Qatar", teamB: "Irã" },
+                    { round: "Rodada 2", date: "26/03 20:30", teamA: "Costa do Marfim", teamB: "Egito" },
+                    
+                    { round: "Rodada 3", date: "28/03 17:30", teamA: "Coreia do Sul", teamB: "Haiti" },
+                    { round: "Rodada 3", date: "28/03 18:30", teamA: "África do Sul", teamB: "Cabo Verde" },
+
+                    { round: "Rodada 4", date: "09/04 19:30", teamA: "Qatar", teamB: "Costa do Marfim" },
+                    { round: "Rodada 4", date: "09/04 20:30", teamA: "Irã", teamB: "Egito" },
+
+                    { round: "Rodada 5", date: "11/04 17:30", teamA: "Coreia do Sul", teamB: "África do Sul" },
+                    { round: "Rodada 5", date: "11/04 18:30", teamA: "Haiti", teamB: "Cabo Verde" },
+
+                    { round: "Rodada 6", date: "23/04 19:30", teamA: "Qatar", teamB: "Egito" },
+                    { round: "Rodada 6", date: "23/04 20:30", teamA: "Irã", teamB: "Costa do Marfim" },
+
+                    { round: "Rodada 7", date: "25/04 17:30", teamA: "Coreia do Sul", teamB: "Cabo Verde" },
+                    { round: "Rodada 7", date: "25/04 18:30", teamA: "Haiti", teamB: "África do Sul" },
+
+                    { round: "Rodada 8", date: "07/05 19:30", teamA: "Qatar", teamB: "Coreia do Sul" },
+                    { round: "Rodada 8", date: "07/05 20:30", teamA: "Irã", teamB: "Haiti" },
+
+                    { round: "Rodada 9", date: "09/05 17:30", teamA: "Costa do Marfim", teamB: "África do Sul" },
+                    { round: "Rodada 9", date: "09/05 18:30", teamA: "Egito", teamB: "Cabo Verde" },
+
+                    { round: "Rodada 10", date: "21/05 19:30", teamA: "Qatar", teamB: "África do Sul" },
+                    { round: "Rodada 10", date: "21/05 20:30", teamA: "Irã", teamB: "Cabo Verde" },
+
+                    { round: "Rodada 11", date: "23/05 17:30", teamA: "Costa do Marfim", teamB: "Coreia do Sul" },
+                    { round: "Rodada 11", date: "23/05 18:30", teamA: "Egito", teamB: "Haiti" },
+
+                    { round: "Rodada 12", date: "04/06 19:30", teamA: "Qatar", teamB: "Cabo Verde" },
+                    { round: "Rodada 12", date: "04/06 20:30", teamA: "Irã", teamB: "África do Sul" },
+
+                    { round: "Rodada 13", date: "06/06 17:30", teamA: "Costa do Marfim", teamB: "Haiti" },
+                    { round: "Rodada 13", date: "06/06 18:30", teamA: "Egito", teamB: "Coreia do Sul" },
+
+                    // --- RETURNO (VOLTA) ---
+                    { round: "Rodada 14", date: "08/08 17:30", teamA: "Cabo Verde", teamB: "Costa do Marfim" },
+                    { round: "Rodada 14", date: "08/08 18:30", teamA: "África do Sul", teamB: "Egito" },
+
+                    { round: "Rodada 15", date: "13/08 19:30", teamA: "Haiti", teamB: "Qatar" },
+                    { round: "Rodada 15", date: "13/08 20:30", teamA: "Coreia do Sul", teamB: "Irã" },
+
+                    { round: "Rodada 16", date: "22/08 17:30", teamA: "Irã", teamB: "Qatar" },
+                    { round: "Rodada 16", date: "22/08 18:30", teamA: "Egito", teamB: "Costa do Marfim" },
+
+                    { round: "Rodada 17", date: "27/08 19:30", teamA: "Haiti", teamB: "Coreia do Sul" },
+                    { round: "Rodada 17", date: "27/08 20:30", teamA: "Cabo Verde", teamB: "África do Sul" },
+
+                    { round: "Rodada 18", date: "05/09 17:30", teamA: "Costa do Marfim", teamB: "Qatar" },
+                    { round: "Rodada 18", date: "05/09 18:30", teamA: "Egito", teamB: "Irã" },
+
+                    { round: "Rodada 19", date: "10/09 19:30", teamA: "África do Sul", teamB: "Coreia do Sul" },
+                    { round: "Rodada 19", date: "10/09 20:30", teamA: "Cabo Verde", teamB: "Haiti" },
+
+                    { round: "Rodada 20", date: "19/09 17:30", teamA: "Egito", teamB: "Qatar" },
+                    { round: "Rodada 20", date: "19/09 18:30", teamA: "Costa do Marfim", teamB: "Irã" },
+
+                    { round: "Rodada 21", date: "24/09 19:30", teamA: "Cabo Verde", teamB: "Coreia do Sul" },
+                    { round: "Rodada 21", date: "24/09 20:30", teamA: "África do Sul", teamB: "Haiti" },
+
+                    { round: "Rodada 22", date: "03/10 17:30", teamA: "Coreia do Sul", teamB: "Qatar" },
+                    { round: "Rodada 22", date: "03/10 18:30", teamA: "Haiti", teamB: "Irã" },
+
+                    { round: "Rodada 23", date: "08/10 19:30", teamA: "África do Sul", teamB: "Costa do Marfim" },
+                    { round: "Rodada 23", date: "08/10 20:30", teamA: "Cabo Verde", teamB: "Egito" },
+
+                    { round: "Rodada 24", date: "17/10 17:30", teamA: "África do Sul", teamB: "Qatar" },
+                    { round: "Rodada 24", date: "17/10 18:30", teamA: "Cabo Verde", teamB: "Irã" },
+
+                    { round: "Rodada 25", date: "22/10 19:30", teamA: "Coreia do Sul", teamB: "Costa do Marfim" },
+                    { round: "Rodada 25", date: "22/10 20:30", teamA: "Haiti", teamB: "Egito" },
+
+                    { round: "Rodada 26", date: "31/10 17:30", teamA: "Cabo Verde", teamB: "Qatar" },
+                    { round: "Rodada 26", date: "31/10 18:30", teamA: "África do Sul", teamB: "Irã" },
+
+                    { round: "Rodada 27", date: "12/11 19:30", teamA: "Haiti", teamB: "Costa do Marfim" },
+                    { round: "Rodada 27", date: "12/11 20:30", teamA: "Coreia do Sul", teamB: "Egito" },
+
+                    // --- MATA-MATA ---
+                    { round: "Quartas de Final", date: "14/11 17:30", teamA: "TBD", teamB: "TBD", local: "Arena Primor" },
+                    { round: "Quartas de Final", date: "14/11 18:30", teamA: "TBD", teamB: "TBD", local: "Arena Primor" },
+                    { round: "Semifinal", date: "19/11 19:30", teamA: "TBD", teamB: "TBD", local: "Arena Primor" },
+                    { round: "Semifinal", date: "19/11 20:30", teamA: "TBD", teamB: "TBD", local: "Arena Primor" },
+                    { round: "Grande Final", date: "21/11 17:30", teamA: "TBD", teamB: "TBD", local: "Arena Primor" }
+                ];
+
+                // 3. INSERIR NOVOS JOGOS
+                newGames.forEach((game) => {
+                    const newDocRef = doc(gamesRef);
+                    batch.set(newDocRef, {
+                        ...game,
+                        status: "future",
+                        scoreA: 0,
+                        scoreB: 0,
+                        events: [],
+                        local: game.local || "Arena Primor",
+                        createdAt: serverTimestamp()
+                    });
+                });
+
+                await batch.commit();
+                alert("SUCESSO! Todos os jogos antigos foram apagados e a tabela oficial (com Qatar) foi gerada.");
+                window.switchAppView('dashboard'); // Redireciona para ver a tabela
+
+            } catch (error) {
+                console.error("Erro ao resetar:", error);
+                alert("Ocorreu um erro ao resetar: " + error.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        };
         
         const PREDEFINED_TEAMS = {
             "TBD": { name: "A Definir", flag: "❓", group: "copa" },
