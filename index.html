@@ -509,7 +509,7 @@
                 const matchData = { id:g.id, type: g.status, stage:g.round, round:g.round, status:g.status, teamA:tA.name, flagA:tA.flag, scoreA:Number(g.scoreA??0), teamB:tB.name, flagB:tB.flag, scoreB:Number(g.scoreB??0), date:g.date, local:g.local, events: g.events || [], details:{goals,cards} };
 
                 if(g.round.toLowerCase().includes('final') || g.round.toLowerCase().includes('3º') || g.round.toLowerCase().includes('oitavas') || g.round.toLowerCase().includes('quartas') || g.round.toLowerCase().includes('semi')) {
-                    matchData.isFinal = g.round.toLowerCase().includes('final') && !g.round.toLowerCase().includes('semi') && !g.round.toLowerCase().includes('3º');
+                    matchData.isFinal = g.round.toLowerCase().includes('final') && !g.round.toLowerCase().includes('semi') && !g.round.toLowerCase().includes('quartas') && !g.round.toLowerCase().includes('oitavas') && !g.round.toLowerCase().includes('3º');
                     copaMatchesData.push(matchData);
                 } else {
                     allGroupGames.push(matchData);
