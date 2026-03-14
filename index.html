@@ -189,20 +189,22 @@
             <div class="glass-panel rounded-2xl overflow-hidden border-app-gold/30"><div id="stats-table-header" class="grid grid-cols-12 bg-app-gold/10 p-3 text-xs font-semibold text-app-gold uppercase tracking-wider text-center"></div><div id="stats-list" class="divide-y divide-[#333]"></div></div>
         </section>
 
-        <section id="view-galeria" class="view-section hidden-view">
-            <div class="mb-6 mt-2 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-app-highlight transition-colors duration-300">Nossa Arena</h2>
-                    <p class="text-gray-400 text-sm">Fotos e vídeos exclusivos</p>
-                </div>
-                
-                <a style="display: none;" href="#" target="_blank" class="flex items-center justify-center gap-2 bg-transparent hover:bg-[#2A2A2A] text-gray-400 hover:text-white px-4 py-2 rounded-full text-xs font-semibold transition-all border border-[#333] active:scale-95">
-                    <i data-lucide="cloud-download" class="w-4 h-4"></i>
-                    Baixar Mídias Originais (Google Drive)
-                </a>
+        <section id="view-noticias" class="view-section hidden-view">
+            <div class="mb-6 mt-2">
+                <h2 class="text-2xl font-bold text-app-highlight transition-colors duration-300">Central de Notícias</h2>
+                <p class="text-gray-400 text-sm">Novidades, fotos e vídeos da Copa</p>
             </div>
             
-            <div class="columns-2 sm:columns-3 gap-3 w-full" id="gallery-container"></div>
+            <div class="flex p-1 bg-[#2A2A2A] rounded-lg mb-6">
+                <button onclick="switchNewsView('feed')" id="news-btn-feed" class="flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300">Feed de Notícias</button>
+                <button onclick="switchNewsView('galeria')" id="news-btn-galeria" class="flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300">Galeria de Fotos</button>
+            </div>
+
+            <div id="noticias-feed-container" class="space-y-4 animate-fadeIn">
+                </div>
+            
+            <div id="gallery-container" class="hidden columns-2 sm:columns-3 gap-3 w-full animate-fadeIn">
+                </div>
         </section>
     </main>
 
@@ -325,12 +327,31 @@
         </div>
     </div>
 
+    <div id="news-modal" class="fixed inset-0 z-[600] hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-app-card w-full max-w-md rounded-2xl shadow-2xl border border-[#333] overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh] relative" id="news-modal-content-box">
+            
+            <button onclick="closeNewsModal()" class="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition-colors backdrop-blur-md z-[610] border border-white/10 shadow-lg">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="relative w-full bg-[#121212] flex shrink-0 justify-center items-center max-h-[45vh]" id="news-modal-image-container">
+                <img id="news-modal-image" src="" class="max-w-full max-h-[45vh] object-contain opacity-90">
+            </div>
+            
+            <div class="p-6 overflow-y-auto no-scrollbar flex-1 mt-2">
+                <span id="news-modal-date" class="text-[10px] text-app-gold uppercase tracking-widest font-bold"></span>
+                <h3 id="news-modal-title" class="text-xl font-bold text-white mt-1 mb-4 leading-tight"></h3>
+                <p id="news-modal-content" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
     <nav class="fixed bottom-0 w-full glass-nav py-2 px-4 flex justify-between items-center text-xs z-50">
         <button onclick="switchView('tabelas')" id="nav-tabelas" class="nav-item flex flex-col items-center text-app-highlight gap-1 transition-colors duration-300 w-1/5"><i data-lucide="table-2" class="w-6 h-6"></i><span class="font-semibold">Tabelas</span></button>
         <button onclick="switchView('jogos')" id="nav-jogos" class="nav-item relative flex flex-col items-center text-gray-500 gap-1 w-1/5"><div class="relative"><i data-lucide="calendar" class="w-6 h-6"></i><span id="nav-live-indicator" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-app-card rounded-full hidden animate-pulse"></span></div><span>Jogos</span></button>
         <div class="w-1/5 flex justify-center"><button onclick="switchView('copa')" id="nav-copa" class="flex items-center justify-center bg-[#2A2A2A] text-gray-500 w-14 h-14 rounded-full -mt-8 border-4 border-app-bg shadow-lg shadow-black/50 transition-all duration-300"><i data-lucide="trophy" class="w-7 h-7"></i></button></div>
         <button onclick="switchView('stats')" id="nav-stats" class="nav-item flex flex-col items-center text-gray-500 gap-1 w-1/5"><i data-lucide="bar-chart-3" class="w-6 h-6"></i><span>Estatísticas</span></button>
-        <button onclick="switchView('galeria')" id="nav-galeria" class="nav-item flex flex-col items-center text-gray-500 gap-1 w-1/5"><i data-lucide="image" class="w-6 h-6"></i><span>Galeria</span></button>
+        <button onclick="switchView('noticias')" id="nav-noticias" class="nav-item flex flex-col items-center text-gray-500 gap-1 w-1/5"><i data-lucide="newspaper" class="w-6 h-6"></i><span>Notícias</span></button>
     </nav>
 
     <script type="module">
@@ -402,6 +423,46 @@
             checkLoading();
 
             if (isFirstLoad) isFirstLoad = false;
+        });
+
+        // --- SISTEMA DE NOTÍCIAS ---
+        onSnapshot(query(collection(db, 'news'), orderBy('createdAt', 'desc')), (snapshot) => {
+            const newsList = document.getElementById('news-list');
+            const newsContainer = document.getElementById('news-container');
+            newsList.innerHTML = '';
+            
+            if (snapshot.empty) {
+                newsContainer.classList.add('hidden');
+                newsContainer.classList.remove('flex');
+                return;
+            }
+
+            newsContainer.classList.remove('hidden');
+            newsContainer.classList.add('flex');
+
+            snapshot.forEach(doc => {
+                const news = doc.data();
+                const hasImage = !!news.imageUrl;
+                
+                newsList.innerHTML += `
+                    <div onclick="openNewsModal('${doc.id}')" class="cursor-pointer bg-gradient-to-br from-[#1E1E1E] to-[#121212] p-5 rounded-2xl border border-[#333] shadow-md shrink-0 w-80 sm:w-96 h-[320px] snap-center flex flex-col gap-2 relative transition-transform hover:scale-[1.02] active:scale-95 group">
+                        
+                        ${hasImage ? `<div class="w-full h-36 bg-black/40 rounded-xl mb-1 flex items-center justify-center overflow-hidden shrink-0"><img src="${news.imageUrl}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"></div>` : ''}
+                        
+                        <h4 class="font-bold text-white text-base md:text-lg leading-tight mt-1 text-right">${news.title}</h4>
+                        
+                        <p class="text-sm text-gray-400 overflow-hidden flex-1 ${hasImage ? 'line-clamp-4' : 'line-clamp-[10]'} whitespace-pre-line text-right">${news.content}</p>
+                        
+                        <div class="flex items-center justify-between mt-auto pt-3 border-t border-[#333]">
+                            <span class="text-[10px] text-gray-500 uppercase tracking-widest">${news.date || ''}</span>
+                            <span class="text-[11px] text-app-gold font-bold uppercase tracking-widest flex items-center gap-1 group-hover:text-yellow-400 transition-colors">
+                                Ler mais <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
         });
 
         // ==========================================
@@ -576,6 +637,21 @@
 
         window.getShortName=(n)=>{const a={'Brasil':'BRA','Argentina':'ARG','Uruguai':'URU','Colômbia':'COL','Chile':'CHI','EUA':'EUA','México':'MEX','França':'FRA','Alemanha':'ALE','Itália':'ITA','Espanha':'ESP','Inglaterra':'ING','Portugal':'POR','Holanda':'HOL','Bélgica':'BEL','Croácia':'CRO','Senegal':'SEN','Marrocos':'MAR','Nigéria':'NGA','Egito':'EGY','Camarões':'CMR','Gana':'GAN','Japão':'JPN','Coreia do Sul':'KOR','Austrália':'AUS','Irã':'IRA','Arábia Saudita':'ARA', 'A Definir': 'TBD', 'Costa do Marfim': 'CIV', 'Qatar': 'QAT', 'Haiti': 'HAI', 'África do Sul': 'RSA', 'Cabo Verde': 'CPV'};return a[n]||n.substring(0,3).toUpperCase();}
         let currentSubView='classificacao', currentStatsView='artilharia', selectedPlayerTeam=null;
+
+        let currentNewsView = 'feed';
+        window.switchNewsView = (v) => {
+            currentNewsView = v;
+            document.getElementById('news-btn-feed').className = v === 'feed' ? 'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300' : 'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';
+            document.getElementById('news-btn-galeria').className = v === 'galeria' ? 'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md bg-app-highlight text-app-bg transition-all duration-300' : 'flex-1 py-2 text-[11px] sm:text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-all duration-300';
+            
+            if(v === 'feed') {
+                document.getElementById('noticias-feed-container').classList.remove('hidden');
+                document.getElementById('gallery-container').classList.add('hidden');
+            } else {
+                document.getElementById('noticias-feed-container').classList.add('hidden');
+                document.getElementById('gallery-container').classList.remove('hidden');
+            }
+        };
 
         window.switchContinent=()=>{
             document.getElementById('section-title').innerText=`Fase de Grupos`;
@@ -1218,9 +1294,9 @@
             if(v==='jogos') { document.getElementById('nav-jogos').classList.remove('text-gray-500'); document.getElementById('nav-jogos').classList.add('text-app-highlight'); }
             if(v==='stats') { document.getElementById('nav-stats').classList.remove('text-gray-500'); document.getElementById('nav-stats').classList.add('text-app-gold'); }
             
-            if(v==='galeria') { 
-                document.getElementById('nav-galeria').classList.remove('text-gray-500'); 
-                document.getElementById('nav-galeria').classList.add('text-app-highlight'); 
+            if(v==='noticias') { 
+                document.getElementById('nav-noticias').classList.remove('text-gray-500'); 
+                document.getElementById('nav-noticias').classList.add('text-app-highlight'); 
             }
             
             if(v==='copa'){
@@ -1234,7 +1310,81 @@
             lucide.createIcons();
         }
 
-        window.switchView('tabelas');
+        // ==========================================
+        // SISTEMA DE NOTÍCIAS
+        // ==========================================
+        let globalNewsData = {};
+
+        // Abrir a notícia
+        window.openNewsModal = (newsId) => {
+            const news = globalNewsData[newsId];
+            if(!news) return;
+
+            document.getElementById('news-modal-title').innerText = news.title;
+            document.getElementById('news-modal-content').innerText = news.content;
+            document.getElementById('news-modal-date').innerText = news.date || '';
+            
+            const imgContainer = document.getElementById('news-modal-image-container');
+            const imgEl = document.getElementById('news-modal-image');
+            
+            if(news.imageUrl) {
+                imgEl.src = news.imageUrl;
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgContainer.classList.add('hidden');
+            }
+
+            const modal = document.getElementById('news-modal');
+            const box = document.getElementById('news-modal-content-box');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); lucide.createIcons(); }, 10);
+        };
+
+        // Fechar a notícia
+        window.closeNewsModal = () => {
+            const modal = document.getElementById('news-modal');
+            const box = document.getElementById('news-modal-content-box');
+            modal.classList.add('opacity-0');
+            box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+        };
+
+        // Carregar notícias do Firebase (Apenas para a Aba Notícias)
+        onSnapshot(query(collection(db, 'news'), orderBy('createdAt', 'desc')), (snapshot) => {
+            const feedContainer = document.getElementById('noticias-feed-container');
+            
+            feedContainer.innerHTML = '';
+            globalNewsData = {};
+            
+            if (snapshot.empty) {
+                feedContainer.innerHTML = '<div class="text-center text-gray-500 py-8">Nenhuma notícia publicada ainda.</div>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const news = doc.data();
+                globalNewsData[doc.id] = news;
+                const hasImage = !!news.imageUrl;
+
+                feedContainer.innerHTML += `
+                    <div onclick="openNewsModal('${doc.id}')" class="cursor-pointer bg-[#1E1E1E] p-4 sm:p-5 rounded-2xl border border-[#333] shadow-md flex flex-col sm:flex-row gap-4 relative transition-transform hover:bg-[#252525] group">
+                        ${hasImage ? `<div class="w-full sm:w-48 h-48 sm:h-auto bg-black/40 rounded-xl flex items-center justify-center overflow-hidden shrink-0"><img src="${news.imageUrl}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-transform duration-500 group-hover:scale-105"></div>` : ''}
+                        <div class="flex-1 flex flex-col min-w-0">
+                            <h4 class="font-bold text-white text-lg md:text-xl leading-tight mb-2">${news.title}</h4>
+                            <p class="text-sm text-gray-400 overflow-hidden flex-1 ${hasImage ? 'line-clamp-4' : 'line-clamp-6'} whitespace-pre-line">${news.content}</p>
+                            <div class="flex items-center justify-between mt-4 pt-3 border-t border-[#333]">
+                                <span class="text-xs text-app-gold uppercase tracking-widest font-bold">${news.date || ''}</span>
+                                <span class="text-xs text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1 group-hover:text-white transition-colors">Ler mais <i data-lucide="chevron-right" class="w-4 h-4"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        });
+
+        window.switchView('noticias'); // Abre a aba de notícias por padrão ao carregar o site
         
         lucide.createIcons();
     </script>
