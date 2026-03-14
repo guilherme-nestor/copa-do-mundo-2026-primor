@@ -1541,6 +1541,9 @@
         onSnapshot(query(collection(db, 'news'), orderBy('createdAt', 'desc')), (snapshot) => {
             const feedContainer = document.getElementById('noticias-feed-container');
             
+            // Verificação de segurança: só executa se o container existir
+            if (!feedContainer) return;
+
             feedContainer.innerHTML = '';
             globalNewsData = {};
             
@@ -1554,6 +1557,7 @@
                 globalNewsData[doc.id] = news;
                 const hasImage = !!news.imageUrl;
 
+                // Desenha apenas na lista vertical da aba de Notícias
                 feedContainer.innerHTML += `
                     <div onclick="openNewsModal('${doc.id}')" class="cursor-pointer bg-[#1E1E1E] p-4 sm:p-5 rounded-2xl border border-[#333] shadow-md flex flex-col sm:flex-row gap-4 relative transition-transform hover:bg-[#252525] group">
                         ${hasImage ? `<div class="w-full sm:w-48 h-48 sm:h-auto bg-black/40 rounded-xl flex items-center justify-center overflow-hidden shrink-0"><img src="${news.imageUrl}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-transform duration-500 group-hover:scale-105"></div>` : ''}
