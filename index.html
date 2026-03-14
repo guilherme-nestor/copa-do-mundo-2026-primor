@@ -208,7 +208,7 @@
         </section>
     </main>
 
-    <div id="fullscreen-media-modal" class="fixed inset-0 z-[200] hidden bg-black/95 flex items-center justify-center p-2 opacity-0 transition-opacity duration-300">
+    <div id="fullscreen-media-modal" class="fixed inset-0 z-[700] hidden bg-black/95 flex items-center justify-center p-2 opacity-0 transition-opacity duration-300">
         <button onclick="closeFullscreen()" class="absolute top-4 right-4 z-[210] p-2 bg-white/10 rounded-full text-white hover:bg-white/30 transition-colors">
             <i data-lucide="x" class="w-6 h-6"></i>
         </button>
@@ -293,13 +293,16 @@
             <div class="h-20 bg-gradient-to-r from-app-highlight/80 to-[#121212] relative flex justify-center">
                 <button onclick="closePlayerProfile()" class="absolute top-2 right-2 text-white/60 hover:text-white bg-black/40 p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
                 
-                <div class="absolute -bottom-10 w-20 h-20 bg-[#252525] rounded-full border-4 border-[#1E1E1E] flex items-center justify-center shadow-lg">
-                    <i data-lucide="user" class="w-8 h-8 text-gray-400"></i>
-                    <div id="profile-number" class="absolute -bottom-1 -right-1 bg-app-gold text-[#121212] w-6 h-6 rounded-full flex items-center justify-center font-bold font-mono text-xs border-2 border-[#1E1E1E] shadow-sm">10</div>
+                <div class="absolute -bottom-12 w-24 h-24 bg-[#252525] rounded-full border-4 border-[#1E1E1E] flex items-center justify-center shadow-lg relative cursor-pointer hover:scale-105 transition-transform" onclick="if(document.getElementById('profile-photo').style.display !== 'none') openFullscreen(document.getElementById('profile-photo').src, 'image')">
+                    <div class="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-[#252525] relative">
+                        <i data-lucide="user" class="w-10 h-10 text-gray-500 absolute z-0"></i>
+                        <img id="profile-photo" src="" onerror="this.style.display='none'" onload="this.style.display='block'" class="w-full h-full object-cover relative z-10">
+                    </div>
+                    <div id="profile-number" class="absolute -bottom-1 -right-1 bg-app-gold text-[#121212] w-7 h-7 rounded-full flex items-center justify-center font-bold font-mono text-xs border-2 border-[#1E1E1E] shadow-sm z-20">10</div>
                 </div>
             </div>
             
-            <div class="pt-12 pb-6 px-5 text-center">
+            <div class="pt-16 pb-6 px-5 text-center">
                 <h3 id="profile-name" class="text-lg font-bold text-white mb-0.5 truncate">Nome do Jogador</h3>
                 <div class="flex items-center justify-center gap-1.5 text-gray-400 text-xs mb-5">
                     <span id="profile-flag" class="text-sm">🇧🇷</span>
@@ -785,33 +788,36 @@
 
         window.renderStats=()=>{
             const list=document.getElementById('stats-list'), h=document.getElementById('stats-table-header'); list.innerHTML='';
+            
+            // Lógica inteligente: Limpa as strings e monta a URL com a pasta do time
+            const formatStr = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
+            const getFotoUrl = (nome, time) => `./assets/images/${formatStr(time)}/${formatStr(nome)}.jpeg`;
+            
+            const getAvatarHtml = (nome, time) => `
+                <div class="w-10 h-10 rounded-full border border-[#333] shrink-0 bg-[#252525] relative overflow-hidden flex items-center justify-center">
+                    <i data-lucide="user" class="w-5 h-5 text-gray-500 absolute z-0"></i>
+                    <img src="${getFotoUrl(nome, time)}" onerror="this.style.display='none'" onload="this.style.display='block'" class="w-full h-full object-cover absolute z-10">
+                </div>
+            `;
+
             if(currentStatsView==='artilharia'){
                 h.classList.remove('hidden'); h.innerHTML=`<div class="col-span-2">Pos</div><div class="col-span-8 text-left pl-2">Jogador</div><div class="col-span-2 text-right pr-4">Gols</div>`;
                 const scorers=allPlayers.filter(p=>(p.goals||0)>0).sort((a,b)=>b.goals-a.goals);
                 if(!scorers.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum gol marcado.</div>';
                 else scorers.slice(0,20).forEach((p,i)=>{ 
                     const t=PREDEFINED_TEAMS[p.teamId]||{flag:'?',name:p.teamId}; 
-                    // ADICIONADO AQUI: onclick e classe cursor-pointer
-                    list.innerHTML+=`<div onclick="window.openPlayerProfile('${p.name}', '${p.number||''}', '${t.name}', '${t.flag}', ${p.goals||0}, ${p.yellowCards||0}, ${p.redCards||0})" class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/10 transition-colors ${i<3?'font-semibold':''} animate-fadeIn cursor-pointer"><div class="col-span-2 ${i===0?'text-app-gold text-lg':''}">${i+1}º</div><div class="col-span-8 text-left pl-2 flex flex-col truncate"><span class="text-gray-200 truncate">${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${t.flag}</span> ${t.name}</span></div><div class="col-span-2 font-bold text-app-gold text-right pr-4">${p.goals}</div></div>`; 
+                    list.innerHTML+=`<div onclick="window.openPlayerProfile('${p.name}', '${p.number||''}', '${t.name}', '${t.flag}', ${p.goals||0}, ${p.yellowCards||0}, ${p.redCards||0})" class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/10 transition-colors ${i<3?'font-semibold':''} animate-fadeIn cursor-pointer"><div class="col-span-2 ${i===0?'text-app-gold text-lg':''}">${i+1}º</div><div class="col-span-8 text-left pl-2 flex items-center gap-3 truncate">${getAvatarHtml(p.name, t.name)}<div class="flex flex-col truncate"><span class="text-gray-200 truncate">${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${t.flag}</span> ${t.name}</span></div></div><div class="col-span-2 font-bold text-app-gold text-right pr-4">${p.goals}</div></div>`; 
                 });
             
             } else if(currentStatsView==='cartoes_geral'){
-                h.classList.remove('hidden'); h.innerHTML=`<div class="col-span-8 text-left pl-4">Seleção</div><div class="col-span-2 text-yellow-500">CA</div><div class="col-span-2 text-red-500">CV</div>`;
-                const tc = {}; 
-                allGames.forEach(game => {
-                    if (game.events && Array.isArray(game.events)) {
-                        game.events.forEach(ev => {
-                            if (ev.teamId && (ev.type === 'yellow_card' || ev.type === 'red_card')) {
-                                if (!tc[ev.teamId]) tc[ev.teamId] = { y: 0, r: 0 };
-                                if (ev.type === 'yellow_card') tc[ev.teamId].y++;
-                                else if (ev.type === 'red_card') tc[ev.teamId].r++;
-                            }
-                        });
-                    }
+                h.classList.remove('hidden'); h.innerHTML=`<div class="col-span-8 text-left pl-4">Jogador</div><div class="col-span-2 text-yellow-500 text-center">CA</div><div class="col-span-2 text-red-500 text-center">CV</div>`;
+                const cardPlayers = allPlayers.filter(p=>(p.yellowCards||0)>0 || (p.redCards||0)>0).sort((a,b)=>(b.redCards||0)-(a.redCards||0) || (b.yellowCards||0)-(a.yellowCards||0));
+                
+                if(!cardPlayers.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum cartão registrado.</div>';
+                else cardPlayers.forEach((p,i)=>{ 
+                    const t=PREDEFINED_TEAMS[p.teamId]||{flag:'?',name:p.teamId}; 
+                    list.innerHTML+=`<div onclick="window.openPlayerProfile('${p.name}', '${p.number||''}', '${t.name}', '${t.flag}', ${p.goals||0}, ${p.yellowCards||0}, ${p.redCards||0})" class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/5 transition-colors animate-fadeIn cursor-pointer"><div class="col-span-8 text-left pl-2 flex items-center gap-3 truncate">${getAvatarHtml(p.name, t.name)}<div class="flex flex-col truncate"><span class="font-semibold text-gray-200 truncate">${p.name}</span><span class="text-[10px] text-gray-500 flex items-center gap-1"><span class="grayscale opacity-70">${t.flag}</span> ${t.name}</span></div></div><div class="col-span-2 font-semibold text-yellow-500 text-center">${p.yellowCards||0}</div><div class="col-span-2 font-semibold text-red-500 text-center">${p.redCards||0}</div></div>`; 
                 });
-                const st=Object.keys(tc).filter(tid=>(tc[tid].y>0||tc[tid].r>0)).sort((a,b)=>tc[b].r-tc[a].r||tc[b].y-tc[a].y);
-                if(!st.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum cartão.</div>';
-                else st.forEach(tid=>{ const t=PREDEFINED_TEAMS[tid]||{flag:'?',name:tid},c=tc[tid]; list.innerHTML+=`<div class="grid grid-cols-12 p-4 items-center text-center hover:bg-app-gold/5 transition-colors animate-fadeIn"><div class="col-span-8 text-left pl-4 flex items-center gap-3 truncate"><span class="text-2xl shrink-0">${t.flag}</span><span class="font-semibold text-gray-200 truncate"><span class="md:hidden">${window.getShortName(t.name)}</span><span class="hidden md:inline">${t.name}</span></span></div><div class="col-span-2 font-semibold text-yellow-500">${c.y}</div><div class="col-span-2 font-semibold text-red-500">${c.r}</div></div>`; });
             } else {
                 if(selectedPlayerTeam===null){
                     h.classList.add('hidden');
@@ -821,8 +827,7 @@
                     const pls=allPlayers.filter(p=>p.teamId===selectedPlayerTeam).sort((a,b)=>(Number(a.number)||0)-(Number(b.number)||0));
                     if(!pls.length) list.innerHTML='<div class="text-center text-gray-500 py-8">Nenhum jogador cadastrado.</div>';
                     else pls.forEach(p=>{ 
-                        // ADICIONADO AQUI: onclick e classe cursor-pointer
-                        list.innerHTML+=`<div onclick="window.openPlayerProfile('${p.name}', '${p.number||''}', '${t.name}', '${t.flag}', ${p.goals||0}, ${p.yellowCards||0}, ${p.redCards||0})" class="flex items-center p-4 hover:bg-[#2A2A2A] transition-colors animate-fadeIn gap-4 cursor-pointer"><div class="font-mono text-xl text-app-gold/50 w-8 text-center shrink-0">${p.number}</div><div class="font-semibold text-lg truncate">${p.name}</div><div class="ml-auto text-xs text-app-gold/50"><i data-lucide="external-link" class="w-4 h-4"></i></div></div>`; 
+                        list.innerHTML+=`<div onclick="window.openPlayerProfile('${p.name}', '${p.number||''}', '${t.name}', '${t.flag}', ${p.goals||0}, ${p.yellowCards||0}, ${p.redCards||0})" class="flex items-center p-4 hover:bg-[#2A2A2A] transition-colors animate-fadeIn gap-4 cursor-pointer"><div class="font-mono text-xl text-app-gold/50 w-8 text-center shrink-0">${p.number}</div>${getAvatarHtml(p.name, t.name)}<div class="font-semibold text-lg truncate">${p.name}</div><div class="ml-auto text-xs text-app-gold/50"><i data-lucide="external-link" class="w-4 h-4"></i></div></div>`; 
                     });
                 }
             }
@@ -879,10 +884,17 @@
             document.getElementById('profile-yellow').innerText = yellow || '0';
             document.getElementById('profile-red').innerText = red || '0';
             
+            // --- NOVA LÓGICA DE PASTAS POR TIME ---
+            // Função que limpa nomes (tira acentos, espaços viram traço e deixa minúsculo)
+            const formatStr = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
+            
+            // Monta o link final: ./assets/images/nome-do-time/nome-do-jogador.jpeg
+            const fotoUrl = `./assets/images/${formatStr(teamName)}/${formatStr(name)}.jpeg`;
+            document.getElementById('profile-photo').src = fotoUrl;
+            
             const modal = document.getElementById('player-profile-modal');
             const card = document.getElementById('player-profile-card');
             
-            // Remove o display:none e aplica a animação
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
@@ -1031,7 +1043,8 @@
             { type: 'image', src: 'https://i.imgur.com/UpwYX3o.jpeg'},
             { type: 'video', src: 'https://i.imgur.com/UXxvkCa.mp4'},
             { type: 'video', src: 'https://i.imgur.com/GOVX4Uu.mp4'},
-            { type: 'video', src: 'https://i.imgur.com/egbQejA.mp4'}
+            { type: 'video', src: 'https://i.imgur.com/egbQejA.mp4'},
+            { type: 'image', src: 'https://i.imgur.com/8bu4a9m.jpeg'}
         ];
 
         // ==========================================
@@ -1044,7 +1057,10 @@
             { type: 'image', src: 'https://i.imgur.com/UpwYX3o.jpeg'},
             { type: 'image', src: 'https://i.imgur.com/S34wREF.jpeg'},
             { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'},
-            { type: 'image', src: 'https://i.imgur.com/dlBcwG6.jpeg'}
+            { type: 'image', src: 'https://i.imgur.com/dlBcwG6.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/8bu4a9m.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'}
         ];
 
         // =======================================================
@@ -1059,7 +1075,10 @@
             { type: 'image', src: 'https://i.imgur.com/UpwYX3o.jpeg'},
             { type: 'video', src: 'https://i.imgur.com/UXxvkCa.mp4'},
             { type: 'video', src: 'https://i.imgur.com/GOVX4Uu.mp4'},
-            { type: 'video', src: 'https://i.imgur.com/egbQejA.mp4'}
+            { type: 'video', src: 'https://i.imgur.com/egbQejA.mp4'},
+            { type: 'image', src: 'https://i.imgur.com/8bu4a9m.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'},
+            { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'}
         ];
 
         window.startHeaderCarousel = () => {
