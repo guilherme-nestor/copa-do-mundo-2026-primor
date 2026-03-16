@@ -203,6 +203,17 @@
             <div id="noticias-feed-container" class="space-y-4 animate-fadeIn">
                 </div>
             
+            <a href="https://drive.google.com/drive/folders/1NrHRDEcNOJbtz_wuVpmW45E9pY9lfJ6-?usp=share_link" target="_blank" id="drive-button" class="hidden mb-6 bg-gradient-to-r from-[#1E1E1E] to-[#252525] border border-[#333] hover:border-app-highlight text-white p-4 rounded-xl items-center gap-4 transition-all hover:scale-[1.02] active:scale-95 shadow-lg group animate-fadeIn">
+                <div class="bg-app-highlight/10 border border-app-highlight/20 p-3 rounded-full group-hover:bg-app-highlight/20 transition-colors shrink-0">
+                    <i data-lucide="cloud" class="w-6 h-6 text-app-highlight"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-sm sm:text-base truncate">Álbum Completo no Drive</h3>
+                    <p class="text-xs text-gray-400 mt-0.5 truncate">Acesse todas as fotos e vídeos em alta qualidade</p>
+                </div>
+                <i data-lucide="external-link" class="w-5 h-5 text-gray-500 group-hover:text-white transition-colors shrink-0"></i>
+            </a>
+
             <div id="gallery-container" class="hidden columns-2 sm:columns-3 gap-3 w-full animate-fadeIn">
                 </div>
         </section>
@@ -802,9 +813,15 @@
             if(v === 'feed') {
                 document.getElementById('noticias-feed-container').classList.remove('hidden');
                 document.getElementById('gallery-container').classList.add('hidden');
+                // Esconde o botão do drive no feed
+                document.getElementById('drive-button').classList.remove('flex');
+                document.getElementById('drive-button').classList.add('hidden');
             } else {
                 document.getElementById('noticias-feed-container').classList.add('hidden');
                 document.getElementById('gallery-container').classList.remove('hidden');
+                // Mostra o botão do drive na galeria
+                document.getElementById('drive-button').classList.remove('hidden');
+                document.getElementById('drive-button').classList.add('flex');
             }
         };
 
@@ -1210,9 +1227,7 @@
             { type: 'image', src: 'https://i.imgur.com/S34wREF.jpeg'},
             { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'},
             { type: 'image', src: 'https://i.imgur.com/dlBcwG6.jpeg'},
-            { type: 'image', src: 'https://i.imgur.com/8bu4a9m.jpeg'},
-            { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'},
-            { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'}
+            { type: 'image', src: 'https://i.imgur.com/8bu4a9m.jpeg'}
         ];
 
         // =======================================================
@@ -1229,7 +1244,6 @@
             { type: 'video', src: 'https://i.imgur.com/GOVX4Uu.mp4'},
             { type: 'video', src: 'https://i.imgur.com/egbQejA.mp4'},
             { type: 'image', src: 'https://i.imgur.com/8bu4a9m.jpeg'},
-            { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'},
             { type: 'image', src: 'https://i.imgur.com/5gj6RHd.jpeg'}
         ];
 
