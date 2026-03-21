@@ -267,6 +267,17 @@
                     <h3 id="live-teamB" class="text-white font-bold text-base sm:text-2xl md:text-3xl drop-shadow-lg truncate w-full"></h3>
                 </div>
             </div>
+            <div class="flex items-center justify-center gap-6 mt-6 bg-black/40 backdrop-blur-md px-6 py-2 rounded-2xl border border-white/10 shadow-lg">
+                <div class="flex flex-col items-center w-16">
+                    <span class="text-xl font-bold text-white" id="live-fouls-A">0</span>
+                    <span class="text-[9px] text-gray-400 uppercase tracking-widest" id="live-fouls-detail-A">1T:0 | 2T:0</span>
+                </div>
+                <div class="text-[10px] text-gray-400 uppercase tracking-widest font-bold flex flex-col items-center gap-0.5"><i data-lucide="alert-circle" class="w-3 h-3 text-app-gold"></i> Faltas</div>
+                <div class="flex flex-col items-center w-16">
+                    <span class="text-xl font-bold text-white" id="live-fouls-B">0</span>
+                    <span class="text-[9px] text-gray-400 uppercase tracking-widest" id="live-fouls-detail-B">1T:0 | 2T:0</span>
+                </div>
+            </div>
         </div>
 
         <div class="relative z-10 flex-1 overflow-y-auto w-full max-w-2xl mx-auto px-6 pb-12 no-scrollbar">
@@ -302,6 +313,17 @@
             </div>
 
             <div class="p-6 overflow-y-auto flex-1 bg-[#1E1E1E]">
+                <div class="mb-6 bg-[#252525] p-4 rounded-xl border border-[#333] flex justify-between items-center shadow-inner">
+                    <div class="flex flex-col items-center w-16">
+                        <div class="text-3xl font-black text-white" id="modal-fouls-teamA">0</div>
+                        <div class="text-[9px] text-gray-500 font-mono tracking-tighter" id="modal-fouls-detailA">1T:0 | 2T:0</div>
+                    </div>
+                    <div class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5 bg-[#1a1a1a] px-3 py-1.5 rounded-full border border-[#333]"><i data-lucide="alert-circle" class="w-4 h-4 text-app-gold"></i> Faltas</div>
+                    <div class="flex flex-col items-center w-16">
+                        <div class="text-3xl font-black text-white" id="modal-fouls-teamB">0</div>
+                        <div class="text-[9px] text-gray-500 font-mono tracking-tighter" id="modal-fouls-detailB">1T:0 | 2T:0</div>
+                    </div>
+                </div>
                 <div class="mb-6"><h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="goal" class="w-4 h-4"></i> Gols</h4><div id="modal-goals-container" class="grid grid-cols-2 gap-4 text-sm"><div id="modal-goals-teamA" class="space-y-2"></div><div id="modal-goals-teamB" class="space-y-2 text-right"></div></div><div id="modal-goals-empty" class="hidden text-sm text-gray-500 italic text-center">Sem gols.</div></div>
                 <div><h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="rectangle-vertical" class="w-4 h-4 rotate-90"></i> Cartões</h4><div id="modal-cards-container" class="grid grid-cols-2 gap-4 text-sm"><div id="modal-cards-teamA" class="space-y-2"></div><div id="modal-cards-teamB" class="space-y-2 text-right"></div></div><div id="modal-cards-empty" class="hidden text-sm text-gray-500 italic text-center">Sem cartões.</div></div>
             </div>
@@ -781,7 +803,7 @@
                     if(ev.type.includes('card')) cards.push({player:pName, team:ev.teamSide, type:ev.type.replace('_card','')});
                 });
                 
-                const matchData = { id:g.id, type: g.status, stage:g.round, round:g.round, status:g.status, teamA:tA.name, flagA:tA.flag, scoreA:Number(g.scoreA??0), teamB:tB.name, flagB:tB.flag, scoreB:Number(g.scoreB??0), date:g.date, local:g.local, events: g.events || [], details:{goals,cards} };
+                const matchData = { id:g.id, type: g.status, stage:g.round, round:g.round, status:g.status, teamA:tA.name, flagA:tA.flag, scoreA:Number(g.scoreA??0), teamB:tB.name, flagB:tB.flag, scoreB:Number(g.scoreB??0), foulsA_1T:Number(g.foulsA_1T??0), foulsA_2T:Number(g.foulsA_2T??0), foulsB_1T:Number(g.foulsB_1T??0), foulsB_2T:Number(g.foulsB_2T??0), date:g.date, local:g.local, events: g.events || [], details:{goals,cards} };
 
                 if(g.round.toLowerCase().includes('final') || g.round.toLowerCase().includes('3º') || g.round.toLowerCase().includes('oitavas') || g.round.toLowerCase().includes('quartas') || g.round.toLowerCase().includes('semi')) {
                     matchData.isFinal = g.round.toLowerCase().includes('final') && !g.round.toLowerCase().includes('semi') && !g.round.toLowerCase().includes('quartas') && !g.round.toLowerCase().includes('oitavas') && !g.round.toLowerCase().includes('3º');
@@ -1081,6 +1103,12 @@
             document.getElementById('modal-teamA').innerText=g.teamA; document.getElementById('modal-flagA').innerText=g.flagA;
             document.getElementById('modal-teamB').innerText=g.teamB; document.getElementById('modal-flagB').innerText=g.flagB;
             document.getElementById('modal-score').innerText=`${g.scoreA} - ${g.scoreB}`;
+            const fA1 = g.foulsA_1T || 0, fA2 = g.foulsA_2T || 0;
+            const fB1 = g.foulsB_1T || 0, fB2 = g.foulsB_2T || 0;
+            document.getElementById('modal-fouls-teamA').innerText = fA1 + fA2;
+            document.getElementById('modal-fouls-detailA').innerText = `1T:${fA1} | 2T:${fA2}`;
+            document.getElementById('modal-fouls-teamB').innerText = fB1 + fB2;
+            document.getElementById('modal-fouls-detailB').innerText = `1T:${fB1} | 2T:${fB2}`;
             const ga=document.getElementById('modal-goals-teamA'), gb=document.getElementById('modal-goals-teamB'), ca=document.getElementById('modal-cards-teamA'), cb=document.getElementById('modal-cards-teamB');
             ga.innerHTML=''; gb.innerHTML=''; ca.innerHTML=''; cb.innerHTML='';
             const goals=g.details.goals||[], cards=g.details.cards||[];
@@ -1407,6 +1435,16 @@
             document.getElementById('live-teamA').innerText = g.teamA; document.getElementById('live-flagA').innerText = g.flagA;
             document.getElementById('live-teamB').innerText = g.teamB; document.getElementById('live-flagB').innerText = g.flagB;
             document.getElementById('live-score').innerText = `${g.scoreA} - ${g.scoreB}`;
+
+            const fA1 = g.foulsA_1T || 0, fA2 = g.foulsA_2T || 0;
+            const fB1 = g.foulsB_1T || 0, fB2 = g.foulsB_2T || 0;
+            const liveFoulsA = document.getElementById('live-fouls-A');
+            if(liveFoulsA) {
+                liveFoulsA.innerText = fA1 + fA2;
+                document.getElementById('live-fouls-detail-A').innerText = `1T:${fA1} | 2T:${fA2}`;
+                document.getElementById('live-fouls-B').innerText = fB1 + fB2;
+                document.getElementById('live-fouls-detail-B').innerText = `1T:${fB1} | 2T:${fB2}`;
+            }
 
             // === NOVO CÓDIGO DO STATUS AQUI ===
             const badge = document.getElementById('live-status-badge');
