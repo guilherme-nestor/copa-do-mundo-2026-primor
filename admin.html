@@ -193,8 +193,13 @@
 
         <div id="match-editor" class="fixed inset-0 bg-[#121212] z-[100] hidden-force flex flex-col overflow-y-auto">
             <div class="bg-[#1E1E1E] p-4 border-b border-[#333] flex items-center justify-between sticky top-0 z-10">
-                <button onclick="closeMatchEditor()" class="text-gray-400 flex items-center gap-1 hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-5 h-5"></i> Voltar</button>
-                <div class="flex items-center gap-3"><span id="editor-saving-indicator" class="text-xs text-app-gold hidden animate-pulse flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Salvando</span><button onclick="toggleGameSettings()" class="bg-[#2A2A2A] p-2 rounded-lg text-gray-400 hover:text-white transition-colors"><i data-lucide="settings" class="w-5 h-5"></i></button></div>
+                <button id="btn-editor-back" onclick="closeMatchEditor()" class="text-gray-400 flex items-center gap-1 hover:text-white transition-colors"><i data-lucide="arrow-left" class="w-5 h-5"></i> Voltar</button>
+                <div class="flex items-center gap-3">
+                    <button id="btn-mesario-link" onclick="generateMesarioLink()" class="bg-[#0A84FF]/20 p-2 rounded-lg text-[#0A84FF] hover:bg-[#0A84FF]/30 transition-colors" title="Copiar Link do Mesário"><i data-lucide="link" class="w-5 h-5"></i></button>
+                    
+                    <span id="editor-saving-indicator" class="text-xs text-app-gold hidden animate-pulse flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3 animate-spin"></i> Salvando</span>
+                    <button id="btn-editor-settings" onclick="toggleGameSettings()" class="bg-[#2A2A2A] p-2 rounded-lg text-gray-400 hover:text-white transition-colors"><i data-lucide="settings" class="w-5 h-5"></i></button>
+                </div>
             </div>
             <div id="editor-loading" class="hidden-force flex flex-col items-center justify-center py-20 space-y-4"><i data-lucide="loader-2" class="w-10 h-10 animate-spin text-app-gold"></i><span class="text-gray-400">Carregando...</span></div>
             <div id="editor-error-msg" class="hidden-force bg-red-900/80 p-4 text-center text-red-200 font-bold sticky top-[70px] z-20 mx-4 rounded-xl text-sm"></div>
@@ -247,12 +252,62 @@
                 </div>
                 <div class="flex items-stretch justify-between gap-3 sm:gap-6 mb-8">
                     <div class="flex-1 flex flex-col bg-[#1E1E1E] p-3 sm:p-4 rounded-xl border-t-4 border-[#333] transition-colors duration-300" id="editor-team-a-container">
-                        <div class="text-center mb-4"><span class="text-4xl mb-2 block" id="editor-flag-a"></span><span class="font-bold text-center truncate w-full block" id="editor-name-a"></span><div class="text-6xl font-bold my-2 transition-all" id="score-a">0</div></div>
+                        <div class="text-center mb-4">
+                            <span class="text-4xl mb-2 block" id="editor-flag-a"></span>
+                            <span class="font-bold text-center truncate w-full block" id="editor-name-a"></span>
+                            <button onclick="openRollCall('A')" class="text-[10px] text-gray-400 hover:text-white hover:bg-black/40 mt-1 mx-auto flex items-center justify-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-full transition-colors border border-white/5 shadow-inner">
+                                <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-[#00B16A]"></i> Fazer Chamada
+                            </button>
+                            <div class="text-6xl font-bold my-2 transition-all" id="score-a">0</div>
+                        </div>
                         <div class="space-y-2 mt-auto"><button onclick="openPlayerSelect('A', 'goal')" class="btn-action w-full py-3 bg-[#2A2A2A] hover:bg-[#333] text-gray-200 rounded-lg text-base shadow-md transition-colors border border-[#333]" id="btn-goal-a"><i data-lucide="plus" class="w-5 h-5"></i> GOL</button><div class="grid grid-cols-2 gap-2"><button onclick="openPlayerSelect('A', 'yellow_card')" class="btn-action py-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CA</button><button onclick="openPlayerSelect('A', 'red_card')" class="btn-action py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CV</button></div></div>
+                        <div class="flex flex-col gap-1 bg-black/30 rounded-lg p-2 mb-3 border border-white/5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Faltas 1ºT</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="updateFouls('A', 1, -1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">-</button>
+                                    <span id="fouls-a-1" class="font-mono font-bold text-lg text-white w-5 text-center">0</span>
+                                    <button onclick="updateFouls('A', 1, 1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-white/5 pt-1 mt-1">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Faltas 2ºT</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="updateFouls('A', 2, -1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">-</button>
+                                    <span id="fouls-a-2" class="font-mono font-bold text-lg text-white w-5 text-center">0</span>
+                                    <button onclick="updateFouls('A', 2, 1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">+</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                      <div class="flex-1 flex flex-col bg-[#1E1E1E] p-3 sm:p-4 rounded-xl border-t-4 border-[#333] transition-colors duration-300" id="editor-team-b-container">
-                        <div class="text-center mb-4"><span class="text-4xl mb-2 block" id="editor-flag-b"></span><span class="font-bold text-center truncate w-full block" id="editor-name-b"></span><div class="text-6xl font-bold my-2 transition-all" id="score-b">0</div></div>
+                        <div class="text-center mb-4">
+                            <span class="text-4xl mb-2 block" id="editor-flag-b"></span>
+                            <span class="font-bold text-center truncate w-full block" id="editor-name-b"></span>
+                            <button onclick="openRollCall('B')" class="text-[10px] text-gray-400 hover:text-white hover:bg-black/40 mt-1 mx-auto flex items-center justify-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-full transition-colors border border-white/5 shadow-inner">
+                                <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-[#0A84FF]"></i> Fazer Chamada
+                            </button>
+                            <div class="text-6xl font-bold my-2 transition-all" id="score-b">0</div>
+                        </div>
                         <div class="space-y-2 mt-auto"><button onclick="openPlayerSelect('B', 'goal')" class="btn-action w-full py-3 bg-[#2A2A2A] hover:bg-[#333] text-gray-200 rounded-lg text-base shadow-md transition-colors border border-[#333]" id="btn-goal-b"><i data-lucide="plus" class="w-5 h-5"></i> GOL</button><div class="grid grid-cols-2 gap-2"><button onclick="openPlayerSelect('B', 'yellow_card')" class="btn-action py-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CA</button><button onclick="openPlayerSelect('B', 'red_card')" class="btn-action py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-colors text-xs"><i data-lucide="rectangle-vertical" class="w-4 h-4"></i> CV</button></div></div>
+                        <div class="flex flex-col gap-1 bg-black/30 rounded-lg p-2 mb-3 border border-white/5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Faltas 1ºT</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="updateFouls('B', 1, -1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">-</button>
+                                    <span id="fouls-b-1" class="font-mono font-bold text-lg text-white w-5 text-center">0</span>
+                                    <button onclick="updateFouls('B', 1, 1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-white/5 pt-1 mt-1">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Faltas 2ºT</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="updateFouls('B', 2, -1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">-</button>
+                                    <span id="fouls-b-2" class="font-mono font-bold text-lg text-white w-5 text-center">0</span>
+                                    <button onclick="updateFouls('B', 2, 1)" class="w-6 h-6 flex items-center justify-center bg-[#333] hover:bg-[#444] rounded-md text-white transition-colors font-bold">+</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <h3 class="text-gray-400 font-bold uppercase tracking-wider mb-3 text-xs pl-1">Linha do Tempo</h3><div id="event-log" class="space-y-2 pb-6"></div>
@@ -264,6 +319,21 @@
                 <div class="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]"><h3 id="modal-action-title" class="font-bold text-gray-200">...</h3><button onclick="closePlayerSelect()" class="text-gray-400 p-2 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button></div>
                 <div class="p-2 overflow-y-auto flex-1" id="players-list"></div>
                 <div id="own-goal-option" class="p-4 border-t border-[#333] hidden-force bg-[#1a1a1a]"><button onclick="confirmGameAction('own_goal', 'Gol Contra')" class="btn-action w-full py-3.5 bg-[#333] text-gray-300 rounded-xl border border-[#444] hover:bg-[#444] transition-colors text-sm sm:text-base">REGISTRAR GOL CONTRA</button></div>
+            </div>
+        </div>
+
+        <div id="roll-call-modal" class="fixed inset-0 bg-black/80 z-[130] hidden-force flex items-end sm:items-center justify-center">
+            <div class="bg-[#1E1E1E] w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[85vh] flex flex-col overflow-hidden animate-slideUp shadow-2xl">
+                <div class="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]">
+                    <h3 id="roll-call-title" class="font-bold text-gray-200 flex items-center gap-2">...</h3>
+                    <button onclick="closeRollCall()" class="text-gray-400 p-2 hover:text-white bg-black/20 rounded-full transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="px-5 py-3 bg-[#121212] flex justify-between items-center text-xs border-b border-[#333]">
+                    <span class="text-gray-400 uppercase tracking-widest font-bold">Jogadores em Campo:</span>
+                    <span class="bg-app-gold text-[#121212] font-black px-2.5 py-0.5 rounded-md text-sm" id="roll-call-count">0</span>
+                </div>
+                <div class="p-3 overflow-y-auto flex-1 space-y-1.5 bg-[#1E1E1E] no-scrollbar pb-6" id="roll-call-list">
+                    </div>
             </div>
         </div>
 
@@ -465,7 +535,41 @@
             "Cabo Verde": { name: "Cabo Verde", flag: "🇨🇻", group: "B" }
         };
 
-        onAuthStateChanged(auth,(u)=>{if(u && u.email){document.getElementById('login-screen').classList.add('hidden-force');document.getElementById('admin-content').classList.remove('hidden-force');setupListeners();populateTeamSelects();}else{document.getElementById('login-screen').classList.remove('hidden-force');document.getElementById('admin-content').classList.add('hidden-force');}});
+        // --- SISTEMA DE LINK MÁGICO DO MESÁRIO ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const mesarioGameId = urlParams.get('mesario');
+
+        if (mesarioGameId) {
+            // Esconde TUDO que é de admin se for um mesário acessando
+            document.querySelector('header').classList.add('hidden-force'); // Topo do Admin
+            document.querySelector('nav').classList.add('hidden-force'); // Abas
+            document.getElementById('btn-editor-back').classList.add('hidden-force'); // Impedir de voltar
+            document.getElementById('btn-editor-settings').classList.add('hidden-force'); // Sem configurações
+            document.getElementById('btn-mesario-link').classList.add('hidden-force'); // Não gera outro link
+        }
+
+        onAuthStateChanged(auth,(u)=>{
+            if(u && u.email){
+                document.getElementById('login-screen').classList.add('hidden-force');
+                document.getElementById('admin-content').classList.remove('hidden-force');
+                setupListeners();
+                populateTeamSelects();
+                
+                // Se for mesário, pula o painel e abre a partida trancada
+                if (mesarioGameId) window.openMatchEditor(mesarioGameId);
+                
+            }else{
+                if (mesarioGameId) {
+                    // Loga o mesário silenciosamente e magicamente
+                    signInWithEmailAndPassword(auth, 'mesario@copa.com', 'mesario123').catch(e => {
+                        alert("Erro: Configure a conta do mesário no Firebase primeiro.");
+                    });
+                } else {
+                    document.getElementById('login-screen').classList.remove('hidden-force');
+                    document.getElementById('admin-content').classList.add('hidden-force');
+                }
+            }
+        });
         document.getElementById('login-form').onsubmit=async(e)=>{e.preventDefault();const m=document.getElementById('admin-email').value,p=document.getElementById('admin-password').value;document.getElementById('login-error').classList.add('hidden-force');document.getElementById('btn-login-loader').classList.remove('hidden-force');try{await signInWithEmailAndPassword(auth,m,p);}catch(e){document.getElementById('login-error').classList.remove('hidden-force');}finally{document.getElementById('btn-login-loader').classList.add('hidden-force');}};
         window.logout=()=>signOut(auth);
 
@@ -570,9 +674,17 @@
         function safeText(id,t){const el=document.getElementById(id);if(el)el.innerText=t;} function safeStyle(id,p,v){const el=document.getElementById(id);if(el)el.style[p]=v;}
         
         function updateEditor(g){
+            // MÁGICA DA EXPIRAÇÃO: Se o jogo acabou e é o mesário acessando, a tela é bloqueada
+            if (mesarioGameId && g.status === 'ended') {
+                document.getElementById('editor-content-area').innerHTML = '<div class="text-center py-20"><i data-lucide="lock" class="w-16 h-16 mx-auto text-red-500 mb-4"></i><h2 class="text-2xl font-bold text-white mb-2">JOGO ENCERRADO</h2><p class="text-gray-400">Este link expirou e a partida não pode mais ser editada.</p></div>';
+                lucide.createIcons();
+                return;
+            }
             const tA=PREDEFINED_TEAMS[g.teamA]||{name:g.teamA||'Time A',flag:'?'}, tB=PREDEFINED_TEAMS[g.teamB]||{name:g.teamB||'Time B',flag:'?'}; 
-            safeText('editor-flag-a',tA.flag);safeText('editor-name-a',tA.name);safeText('score-a',Math.max(0, Number(g.scoreA??0)));
-            safeText('editor-flag-b',tB.flag);safeText('editor-name-b',tB.name);safeText('score-b',Math.max(0, Number(g.scoreB??0)));
+            safeText('editor-flag-a',tA.flag);safeText('editor-name-a',tA.name);safeText('score-a',Math.max(0, Number(g.scoreA??0))); 
+            safeText('fouls-a-1',Math.max(0, Number(g.foulsA_1T??0))); safeText('fouls-a-2',Math.max(0, Number(g.foulsA_2T??0)));
+            safeText('editor-flag-b',tB.flag);safeText('editor-name-b',tB.name);safeText('score-b',Math.max(0, Number(g.scoreB??0))); 
+            safeText('fouls-b-1',Math.max(0, Number(g.foulsB_1T??0))); safeText('fouls-b-2',Math.max(0, Number(g.foulsB_2T??0)));
             const cA='#00B16A', cB='#0A84FF';
             safeStyle('editor-team-a-container','borderColor',cA);safeStyle('btn-goal-a','backgroundColor',cA);safeStyle('btn-goal-a','color','#121212');
             safeStyle('editor-team-b-container','borderColor',cB);safeStyle('btn-goal-b','backgroundColor',cB);safeStyle('btn-goal-b','color','#121212');
@@ -583,16 +695,64 @@
             if(evs.length===0)logHtml='<div class="text-gray-500 text-center py-4 italic text-sm">Sem eventos.</div>';
             else{[...evs].reverse().forEach((ev,i)=>{let ic='goal',cl='text-[#00B16A] border-[#00B16A]';if(ev.type==='own_goal'){ic='alert-triangle';cl='text-red-400 border-red-400';}else if(ev.type==='yellow_card'){ic='rectangle-vertical';cl='text-yellow-500 border-yellow-500';}else if(ev.type==='red_card'){ic='rectangle-vertical';cl='text-red-500 border-red-500';}const pName=ev.playerName||ev.player||'Desconhecido',evFlag=ev.teamSide==='A'?tA.flag:tB.flag;logHtml+=`<div class="bg-[#252525] p-3 rounded-lg flex items-center justify-between text-sm border-l-4 ${cl} animate-fadeIn"><span><i data-lucide="${ic}" class="inline w-4 h-4 mr-2 ${cl.split(' ')[0]}"></i>${pName} (${evFlag})</span><button onclick="window.deleteEvent(${evs.length-1-i})" class="text-red-500 p-2 hover:bg-red-500/10 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;});}
             const logEl=document.getElementById('event-log');if(logEl)logEl.innerHTML=logHtml;lucide.createIcons();
+            // Atualiza a janela de chamada se estiver aberta
+            const rollCallModal = document.getElementById('roll-call-modal');
+            if (rollCallModal && !rollCallModal.classList.contains('hidden-force')) {
+                if(window.renderRollCallList) window.renderRollCallList();
+            }
         }
 
         window.toggleGameSettings=()=>{const a=document.getElementById('game-settings-area');if(a.classList.contains('hidden-force')){const[d,t]=currentGameData.date.split(' ');const[dd,mm]=d.split('/');document.getElementById('edit-game-date').value=`${new Date().getFullYear()}-${mm}-${dd}`;document.getElementById('edit-game-time').value=t;document.getElementById('edit-game-local').value=currentGameData.local||'';document.getElementById('edit-game-team-a').value=currentGameData.teamA;document.getElementById('edit-game-team-b').value=currentGameData.teamB;document.getElementById('edit-game-round').value=currentGameData.round;a.classList.remove('hidden-force');}else{a.classList.add('hidden-force');}};
         window.saveGameSettings=async()=>{const dt=document.getElementById('edit-game-date').value,tm=document.getElementById('edit-game-time').value,loc=document.getElementById('edit-game-local').value,tA=document.getElementById('edit-game-team-a').value,tB=document.getElementById('edit-game-team-b').value,rnd=document.getElementById('edit-game-round').value;if(dt&&tm&&tA&&tB&&rnd){const dObj=new Date(dt+'T'+tm),day=String(dObj.getDate()).padStart(2,'0'),mth=String(dObj.getMonth()+1).padStart(2,'0'),fmtDate=`${day}/${mth} ${tm}`;await updateDoc(doc(db,'games',editingGameId),{date:fmtDate,local:loc,teamA:tA,teamB:tB,round:rnd});document.getElementById('game-settings-area').classList.add('hidden-force');}};
         window.deleteCurrentGame=async()=>{if(confirm('TEM CERTEZA? Isso apagará o jogo permanentemente!')) { await deleteDoc(doc(db,'games',editingGameId)); closeMatchEditor(); }};
         window.updateGameStatus=async(s)=>{if(editingGameId)await updateDoc(doc(db,'games',editingGameId),{status:s});};
-        
+        window.updateFouls = async (teamSide, half, change) => {
+            if (!editingGameId) return;
+            const field = teamSide === 'A' ? (half === 1 ? 'foulsA_1T' : 'foulsA_2T') : (half === 1 ? 'foulsB_1T' : 'foulsB_2T');
+            const currentFouls = currentGameData[field] || 0;
+            if (currentFouls === 0 && change < 0) return;
+
+            currentGameData[field] = currentFouls + change;
+            document.getElementById(teamSide === 'A' ? `fouls-a-${half}` : `fouls-b-${half}`).innerText = currentGameData[field];
+
+            await updateDoc(doc(db, 'games', editingGameId), { [field]: increment(change) });
+        };
         window.openPlayerSelect=async(s,tp)=>{currentAction={type:tp,teamSide:s};const tid=s==='A'?currentGameData.teamA:currentGameData.teamB;document.getElementById('player-select-modal').classList.remove('hidden-force');document.getElementById('modal-action-title').innerText=`${tp==='goal'?'GOL':(tp==='yellow_card'?'CA':'CV')} - ${PREDEFINED_TEAMS[tid].name.toUpperCase()}`;document.getElementById('own-goal-option').classList.toggle('hidden-force',tp!=='goal');const l=document.getElementById('players-list');l.innerHTML='<div class="text-center py-4"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-app-gold"></i></div>';lucide.createIcons();const sp=await getDocs(collection(db,'teams',tid,'players'));l.innerHTML='';if(sp.empty)l.innerHTML='<div class="text-center text-gray-500 py-4">Sem jogadores. Vá em Gerenciar.</div>';else{const pls=[];sp.forEach(d=>pls.push({id:d.id,...d.data()}));pls.sort((a,b)=>{if(a.suspended&&!b.suspended)return -1;if(!a.suspended&&b.suspended)return 1;return a.name.localeCompare(b.name);});pls.forEach(p=>{l.innerHTML+=`<button onclick="window.confirmGameAction('${p.id}','${p.name}')" class="w-full text-left p-4 hover:bg-[#333] rounded-xl border-b border-[#333] flex gap-3 ${p.suspended?'bg-red-900/20 opacity-70':''}"><span class="font-mono text-app-gold/70">${p.number}</span><span class="font-semibold">${p.name}</span> ${p.suspended?'<span class="text-red-500 text-xs font-bold ml-auto">(SUSPENSO)</span>':''}</button>`;});}};
         window.confirmGameAction=async(pid,nm)=>{window.closePlayerSelect();const tid=currentAction.teamSide==='A'?currentGameData.teamA:currentGameData.teamB,type=pid==='own_goal'?'own_goal':currentAction.type;const gameUp={events:arrayUnion({type,playerId:pid,playerName:nm,teamSide:currentAction.teamSide,teamId:tid,createdAt:Date.now()})};if(type==='goal'||type==='own_goal')gameUp[currentAction.teamSide==='A'?'scoreA':'scoreB']=increment(1);await updateDoc(doc(db,'games',editingGameId),gameUp);if(pid!=='own_goal'){const pRef=doc(db,'teams',tid,'players',pid);if(type==='goal')await updateDoc(pRef,{goals:increment(1)});if(type==='yellow_card')await updateDoc(pRef,{yellowCards:increment(1)});if(type==='red_card')await updateDoc(pRef,{redCards:increment(1)});}};
         
+        window.generateMesarioLink = () => {
+            const url = window.location.origin + window.location.pathname + '?mesario=' + editingGameId;
+            const successMsg = "✅ LINK COPIADO COM SUCESSO!\n\nEnvie para o responsável. Ele só terá acesso a esta partida e o link perderá a validade automaticamente assim que ele marcar como ENCERRADO.";
+            
+            // Tenta usar a API moderna (exige HTTPS ou localhost)
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(() => alert(successMsg));
+            } else {
+                // Plano B: Fallback para quando está a testar em HTTP local
+                const textArea = document.createElement("textarea");
+                textArea.value = url;
+                // Evita que o ecrã salte
+                textArea.style.position = "fixed";  
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        alert(successMsg);
+                    } else {
+                        alert("⚠️ O seu navegador bloqueou a cópia. Copie o link abaixo manualmente:\n\n" + url);
+                    }
+                } catch (err) {
+                    alert("⚠️ Erro ao copiar. Copie o link abaixo manualmente:\n\n" + url);
+                }
+                document.body.removeChild(textArea);
+            }
+        };
+
         window.deleteEvent=async(i)=>{
             const events = currentGameData.events || [];
             if (!events[i]) return;
@@ -792,6 +952,92 @@
             if(confirm('ATENÇÃO: Deseja apagar este Story? Ele sumirá do ecrã de todos.')) {
                 await deleteDoc(doc(db, 'stories', id));
             }
+        };
+
+        // ==========================================
+        // SISTEMA DE CHAMADA (CHECK-IN DE JOGADORES)
+        // ==========================================
+        let currentRollCallTeam = null;
+        window.currentTeamPlayersForRollCall = [];
+
+        window.openRollCall = async (teamSide) => {
+            currentRollCallTeam = teamSide;
+            const tid = teamSide === 'A' ? currentGameData.teamA : currentGameData.teamB;
+            const color = teamSide === 'A' ? 'text-[#00B16A]' : 'text-[#0A84FF]';
+            document.getElementById('roll-call-title').innerHTML = `<i data-lucide="clipboard-check" class="w-5 h-5 ${color}"></i> Chamada: ${PREDEFINED_TEAMS[tid].name}`;
+            document.getElementById('roll-call-modal').classList.remove('hidden-force');
+            
+            const l = document.getElementById('roll-call-list');
+            l.innerHTML = '<div class="text-center py-10"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-gray-500"></i><p class="text-gray-500 mt-2 text-sm font-medium">Carregando elenco...</p></div>';
+            lucide.createIcons();
+            
+            const sp = await getDocs(collection(db, 'teams', tid, 'players'));
+            if (sp.empty) {
+                l.innerHTML = '<div class="text-center text-gray-500 py-10 italic">Nenhum jogador cadastrado neste time.</div>';
+            } else {
+                const pls = [];
+                sp.forEach(d => pls.push({ id: d.id, ...d.data() }));
+                // Ordenar pelo número da camisa
+                pls.sort((a, b) => (Number(a.number)||0) - (Number(b.number)||0));
+                window.currentTeamPlayersForRollCall = pls;
+                window.renderRollCallList();
+            }
+        };
+
+        window.renderRollCallList = () => {
+            const l = document.getElementById('roll-call-list');
+            l.innerHTML = '';
+            // Puxa do Firebase os jogadores que já foram marcados nesta partida
+            const presentList = currentGameData.presentPlayers || [];
+            let count = 0;
+
+            const colorBg = currentRollCallTeam === 'A' ? 'bg-[#00B16A]' : 'bg-[#0A84FF]';
+            const colorBorder = currentRollCallTeam === 'A' ? 'border-[#00B16A]' : 'border-[#0A84FF]';
+
+            window.currentTeamPlayersForRollCall.forEach(p => {
+                const isPresent = presentList.includes(p.id);
+                if (isPresent) count++;
+                
+                l.innerHTML += `
+                    <div onclick="togglePresence('${p.id}')" class="flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all active:scale-[0.98] ${isPresent ? `${colorBg}/10 ${colorBorder}/40 shadow-inner` : 'bg-[#252525] border-[#333] hover:bg-[#2A2A2A]'}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${isPresent ? `${colorBorder} ${colorBg}` : 'border-gray-500 bg-[#121212]'}">
+                                ${isPresent ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
+                            </div>
+                            <span class="font-mono text-gray-500 text-sm w-6 text-center">${p.number}</span>
+                            <span class="font-semibold ${isPresent ? 'text-white' : 'text-gray-400'}">${p.name}</span>
+                        </div>
+                        ${p.suspended ? '<span class="text-[9px] bg-red-500/20 text-red-500 px-2 py-0.5 rounded uppercase font-bold tracking-widest border border-red-500/30">Suspenso</span>' : ''}
+                    </div>
+                `;
+            });
+            document.getElementById('roll-call-count').innerText = count;
+            lucide.createIcons();
+        };
+
+        window.togglePresence = async (pid) => {
+            if (!editingGameId) return;
+            const presentList = currentGameData.presentPlayers || [];
+            let newPresentList;
+            
+            // Adiciona ou remove da lista de presença
+            if (presentList.includes(pid)) {
+                newPresentList = presentList.filter(id => id !== pid);
+            } else {
+                newPresentList = [...presentList, pid];
+            }
+            
+            // Atualiza UI instantaneamente para parecer super rápido
+            currentGameData.presentPlayers = newPresentList;
+            window.renderRollCallList();
+            
+            // Salva no Firebase
+            await updateDoc(doc(db, 'games', editingGameId), { presentPlayers: newPresentList });
+        };
+
+        window.closeRollCall = () => {
+            document.getElementById('roll-call-modal').classList.add('hidden-force');
+            window.currentTeamPlayersForRollCall = [];
         };
 
         lucide.createIcons();
