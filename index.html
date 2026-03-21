@@ -138,14 +138,24 @@
         <div id="header-media-bg" class="absolute inset-0 z-0 transition-opacity duration-1000 opacity-0"></div>
         <div id="header-overlay" class="absolute inset-0 z-0 bg-black/60 backdrop-blur-[1px] transition-all duration-500"></div>
         
-        <div class="relative z-10 flex flex-col items-center justify-center transition-all duration-500 w-full">
+        <div class="relative z-10 flex flex-col items-center justify-center transition-all duration-500 w-full px-2">
             <a href="admin.html" class="absolute -top-2 right-2 sm:right-6 p-2 text-white/30 hover:text-app-gold transition-colors z-50" title="Acesso Restrito">
                 <i data-lucide="lock" class="w-4 h-4"></i>
             </a>
 
-            <img id="main-logo" src="./assets/images/Logo Primor.png" alt="Logo Primor" class="h-16 sm:h-20 object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-all duration-500">
-            <div id="main-title-container" class="transition-all duration-500 overflow-hidden opacity-100 max-h-[50px] mt-2">
-                <h1 class="text-sm sm:text-base font-black text-app-gold tracking-widest drop-shadow-lg uppercase bg-black/40 px-3 py-0.5 rounded-full border border-app-gold/20">Copa do Mundo 2026</h1>
+            <div id="logos-container" class="flex items-center justify-center gap-4 sm:gap-6 transition-all duration-500">
+                <img id="main-logo-1" src="./assets/images/Logo Primor.png" alt="Logo Primor" class="h-14 sm:h-20 object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-all duration-500">
+                
+                <div class="w-px h-8 bg-white/20 rounded-full"></div> <img id="main-logo-2" src="./assets/images/Logo C.png" alt="Logo Centro Aço" style="transform: scale(1.056); transform: translateY(4px);" class="h-14 sm:h-20 object-contain drop-shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-all duration-500">
+            </div>
+
+            <div id="main-title-container" class="transition-all duration-500 overflow-hidden opacity-100 max-h-[80px] mt-3 flex flex-col items-center gap-1.5 w-full">
+                <span class="text-[9px] sm:text-[11px] text-gray-300 uppercase tracking-widest font-semibold text-center drop-shadow-md leading-tight px-4 w-full">
+                    VII Campeonato Centroaço Primor de Futebol Society
+                </span>
+                <h1 class="text-xs sm:text-sm font-black text-app-gold tracking-widest drop-shadow-lg uppercase bg-black/40 px-4 py-1 rounded-full border border-app-gold/20 text-center">
+                    Edição Copa do Mundo 2026
+                </h1>
             </div>
         </div>
     </header>
@@ -879,7 +889,8 @@
         
         window.addEventListener('scroll', () => {
             const header = document.getElementById('main-header');
-            const logo = document.getElementById('main-logo');
+            const logo1 = document.getElementById('main-logo-1');
+            const logo2 = document.getElementById('main-logo-2');
             const titleContainer = document.getElementById('main-title-container');
             const overlay = document.getElementById('header-overlay');
 
@@ -891,11 +902,13 @@
                 header.classList.remove('h-[180px]', 'sm:h-[220px]');
                 header.classList.add('h-[70px]', 'sm:h-[80px]');
                 
-                logo.classList.remove('h-16', 'sm:h-20');
-                logo.classList.add('h-10', 'sm:h-12');
+                // Encolhe as duas logos
+                if(logo1) { logo1.classList.remove('h-14', 'sm:h-20'); logo1.classList.add('h-10', 'sm:h-12'); }
+                if(logo2) { logo2.classList.remove('h-14', 'sm:h-20'); logo2.classList.add('h-10', 'sm:h-12'); }
                 
-                titleContainer.classList.remove('opacity-100', 'max-h-[50px]', 'mt-2');
-                titleContainer.classList.add('opacity-0', 'max-h-0', 'mt-0'); // Esconde o texto
+                // Esconde a caixa de texto nova (agora com max-h-[80px])
+                titleContainer.classList.remove('opacity-100', 'max-h-[80px]', 'mt-3');
+                titleContainer.classList.add('opacity-0', 'max-h-0', 'mt-0'); 
                 
                 overlay.classList.remove('bg-black/40', 'backdrop-blur-[1px]');
                 overlay.classList.add('bg-black/80', 'backdrop-blur-md'); // Escurece o fundo
@@ -908,11 +921,13 @@
                 header.classList.remove('h-[70px]', 'sm:h-[80px]');
                 header.classList.add('h-[180px]', 'sm:h-[220px]');
                 
-                logo.classList.remove('h-10', 'sm:h-12');
-                logo.classList.add('h-16', 'sm:h-20');
+                // Aumenta as duas logos
+                if(logo1) { logo1.classList.remove('h-10', 'sm:h-12'); logo1.classList.add('h-14', 'sm:h-20'); }
+                if(logo2) { logo2.classList.remove('h-10', 'sm:h-12'); logo2.classList.add('h-14', 'sm:h-20'); }
                 
+                // Mostra a caixa de texto nova
                 titleContainer.classList.remove('opacity-0', 'max-h-0', 'mt-0');
-                titleContainer.classList.add('opacity-100', 'max-h-[50px]', 'mt-2'); // Mostra o texto
+                titleContainer.classList.add('opacity-100', 'max-h-[80px]', 'mt-3'); 
                 
                 overlay.classList.remove('bg-black/80', 'backdrop-blur-md');
                 overlay.classList.add('bg-black/40', 'backdrop-blur-[1px]'); // Clareia o fundo
