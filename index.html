@@ -714,7 +714,9 @@
 
             const tA = PREDEFINED_TEAMS[teamA]?.name || teamA;
             const tB = PREDEFINED_TEAMS[teamB]?.name || teamB;
-            const pName = ev.playerName || 'Jogador';
+            // Puxa o nome atualizado do jogador pelo ID. Se não achar, usa o gravado.
+            const playerObj = allPlayers.find(p => p.id === ev.playerId);
+            const pName = playerObj ? playerObj.name : (ev.playerName || 'Jogador');
             const teamName = PREDEFINED_TEAMS[ev.teamId]?.name || 'Equipe';
 
             // Variáveis de estilo visual
@@ -797,7 +799,10 @@
                 let goals=[], cards=[];
                 
                 if(g.events) g.events.forEach(ev => {
-                    const pName = ev.playerName || ev.player || 'Desconhecido';
+                    // MÁGICA AQUI: Puxa o nome atualizado direto da lista global de jogadores!
+                    const playerObj = allPlayers.find(p => p.id === ev.playerId);
+                    const pName = playerObj ? playerObj.name : (ev.playerName || ev.player || 'Desconhecido');
+                    
                     if(ev.type==='goal') goals.push({player:pName, team:ev.teamSide});
                     if(ev.type==='own_goal') goals.push({player:pName+' (GC)', team:ev.teamSide});
                     if(ev.type.includes('card')) cards.push({player:pName, team:ev.teamSide, type:ev.type.replace('_card','')});
@@ -1468,7 +1473,9 @@
             } else {
                 // Desenha a linha do tempo (do evento mais recente para o mais antigo)
                 [...events].reverse().forEach(ev => {
-                    const pName = ev.playerName || 'Jogador';
+                    const playerObj = allPlayers.find(p => p.id === ev.playerId);
+                    const pName = playerObj ? playerObj.name : (ev.playerName || 'Jogador');
+                    
                     const isTeamA = ev.teamSide === 'A';
                     let icon = 'activity', color = 'text-gray-400', bg = 'bg-[#1E1E1E]', border = 'border-gray-600', title = '';
 
