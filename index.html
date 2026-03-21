@@ -203,16 +203,16 @@
             <div id="noticias-feed-container" class="space-y-4 animate-fadeIn">
                 </div>
             
-            <a href="https://drive.google.com/drive/folders/1NrHRDEcNOJbtz_wuVpmW45E9pY9lfJ6-?usp=share_link" target="_blank" id="drive-button" class="hidden mb-6 bg-gradient-to-r from-[#1E1E1E] to-[#252525] border border-[#333] hover:border-app-highlight text-white p-4 rounded-xl items-center gap-4 transition-all hover:scale-[1.02] active:scale-95 shadow-lg group animate-fadeIn">
+            <button onclick="openDriveModal()" id="drive-button" class="hidden mb-6 w-full text-left bg-gradient-to-r from-[#1E1E1E] to-[#252525] border border-[#333] hover:border-app-highlight text-white p-4 rounded-xl items-center gap-4 transition-all hover:scale-[1.02] active:scale-95 shadow-lg group animate-fadeIn">
                 <div class="bg-app-highlight/10 border border-app-highlight/20 p-3 rounded-full group-hover:bg-app-highlight/20 transition-colors shrink-0">
                     <i data-lucide="cloud" class="w-6 h-6 text-app-highlight"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-bold text-sm sm:text-base truncate">Álbum Completo no Drive</h3>
-                    <p class="text-xs text-gray-400 mt-0.5 truncate">Acesse todas as fotos e vídeos em alta qualidade</p>
+                    <h3 class="font-bold text-sm sm:text-base truncate">Álbuns Completos no Drive</h3>
+                    <p class="text-xs text-gray-400 mt-0.5 truncate">Toque para escolher a pasta de fotos</p>
                 </div>
-                <i data-lucide="external-link" class="w-5 h-5 text-gray-500 group-hover:text-white transition-colors shrink-0"></i>
-            </a>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500 group-hover:text-white transition-colors shrink-0"></i>
+            </button>
 
             <div id="gallery-container" class="hidden columns-2 sm:columns-3 gap-3 w-full animate-fadeIn">
                 </div>
@@ -356,6 +356,44 @@
                 <span id="news-modal-date" class="text-[10px] text-app-gold uppercase tracking-widest font-bold"></span>
                 <h3 id="news-modal-title" class="text-xl font-bold text-white mt-1 mb-4 leading-tight"></h3>
                 <p id="news-modal-content" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="drive-selection-modal" class="fixed inset-0 z-[650] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-[#1E1E1E] w-full max-w-sm rounded-2xl shadow-2xl border border-[#333] p-6 transform scale-95 transition-transform duration-300 relative" id="drive-modal-content-box">
+            <button onclick="closeDriveModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white bg-black/40 p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            
+            <div class="text-center mb-6 mt-2">
+                <div class="w-14 h-14 bg-app-highlight/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-app-highlight/30">
+                    <i data-lucide="cloud" class="w-7 h-7 text-app-highlight"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white tracking-widest uppercase">Acervo de Fotos</h3>
+                <p class="text-xs text-gray-400 mt-1">Escolha qual álbum deseja acessar</p>
+            </div>
+            
+            <div class="space-y-3">
+                <a href="https://drive.google.com/drive/folders/1NrHRDEcNOJbtz_wuVpmW45E9pY9lfJ6-" target="_blank" class="flex items-center gap-4 p-4 rounded-xl bg-[#252525] border border-[#333] hover:border-app-highlight hover:bg-app-highlight/5 transition-all group">
+                    <div class="bg-[#121212] p-2.5 rounded-full border border-[#333] group-hover:border-app-highlight/50 transition-colors">
+                        <i data-lucide="camera" class="w-5 h-5 text-gray-400 group-hover:text-app-highlight"></i>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <h4 class="font-bold text-sm text-gray-200 group-hover:text-white transition-colors">Imagens do Drone</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Aéreas e Panorâmicas</p>
+                    </div>
+                    <i data-lucide="external-link" class="w-4 h-4 text-gray-600 group-hover:text-app-highlight transition-colors"></i>
+                </a>
+                
+                <a href="https://drive.google.com/drive/folders/1AEH8S5EhP9g39XVc2Xc8YrN9asY4581D" target="_blank" class="flex items-center gap-4 p-4 rounded-xl bg-[#252525] border border-[#333] hover:border-app-gold hover:bg-app-gold/5 transition-all group">
+                    <div class="bg-[#121212] p-2.5 rounded-full border border-[#333] group-hover:border-app-gold/50 transition-colors">
+                        <i data-lucide="zap" class="w-5 h-5 text-gray-400 group-hover:text-app-gold"></i>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <h4 class="font-bold text-sm text-gray-200 group-hover:text-white transition-colors">Imagens PowerFit</h4>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Jogadores</p>
+                    </div>
+                    <i data-lucide="external-link" class="w-4 h-4 text-gray-600 group-hover:text-app-gold transition-colors"></i>
+                </a>
             </div>
         </div>
     </div>
@@ -1589,7 +1627,33 @@
             lucide.createIcons();
         });
 
-        window.switchView('noticias'); // Abre a aba de notícias por padrão ao carregar o site
+        window.switchView('noticias');
+        
+        // ==========================================
+        // JANELA DO GOOGLE DRIVE
+        // ==========================================
+        window.openDriveModal = () => {
+            const modal = document.getElementById('drive-selection-modal');
+            const box = document.getElementById('drive-modal-content-box');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => { 
+                modal.classList.remove('opacity-0'); 
+                box.classList.remove('scale-95'); 
+                lucide.createIcons(); 
+            }, 10);
+        };
+
+        window.closeDriveModal = () => {
+            const modal = document.getElementById('drive-selection-modal');
+            const box = document.getElementById('drive-modal-content-box');
+            modal.classList.add('opacity-0');
+            box.classList.add('scale-95');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                modal.classList.remove('flex'); 
+            }, 300);
+        };
         
         lucide.createIcons();
     </script>
